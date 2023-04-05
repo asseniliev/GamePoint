@@ -4,7 +4,7 @@
 
 ## Description
 
-"GAME POINT" is a web application designated to manage basic gamers (both individuals and teams) profiles, organize gaming competitions and events and maintain performance statistics.
+"GAME POINT" is a web application developped in ASP.NET Core MVC. It is designated to manage basic gamers (both individuals and teams) profiles, organize gaming competitions and events and maintain performance statistics.
 
 ![Home Page](/ScreenShots/HomePage.JPG)
 
