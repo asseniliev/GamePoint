@@ -1,0 +1,438 @@
+USE [master]
+GO
+/****** Object:  Database [MatchScore]    Script Date: 06.12.2022 г. 00:30:24 ******/
+CREATE DATABASE [MatchScore]
+GO
+ALTER DATABASE [MatchScore] SET COMPATIBILITY_LEVEL = 150
+GO
+IF (1 = FULLTEXTSERVICEPROPERTY('IsFullTextInstalled'))
+begin
+EXEC [MatchScore].[dbo].[sp_fulltext_database] @action = 'enable'
+end
+GO
+ALTER DATABASE [MatchScore] SET ANSI_NULL_DEFAULT OFF 
+GO
+ALTER DATABASE [MatchScore] SET ANSI_NULLS OFF 
+GO
+ALTER DATABASE [MatchScore] SET ANSI_PADDING OFF 
+GO
+ALTER DATABASE [MatchScore] SET ANSI_WARNINGS OFF 
+GO
+ALTER DATABASE [MatchScore] SET ARITHABORT OFF 
+GO
+ALTER DATABASE [MatchScore] SET AUTO_CLOSE OFF 
+GO
+ALTER DATABASE [MatchScore] SET AUTO_SHRINK OFF 
+GO
+ALTER DATABASE [MatchScore] SET AUTO_UPDATE_STATISTICS ON 
+GO
+ALTER DATABASE [MatchScore] SET CURSOR_CLOSE_ON_COMMIT OFF 
+GO
+ALTER DATABASE [MatchScore] SET CURSOR_DEFAULT  GLOBAL 
+GO
+ALTER DATABASE [MatchScore] SET CONCAT_NULL_YIELDS_NULL OFF 
+GO
+ALTER DATABASE [MatchScore] SET NUMERIC_ROUNDABORT OFF 
+GO
+ALTER DATABASE [MatchScore] SET QUOTED_IDENTIFIER OFF 
+GO
+ALTER DATABASE [MatchScore] SET RECURSIVE_TRIGGERS OFF 
+GO
+ALTER DATABASE [MatchScore] SET  ENABLE_BROKER 
+GO
+ALTER DATABASE [MatchScore] SET AUTO_UPDATE_STATISTICS_ASYNC OFF 
+GO
+ALTER DATABASE [MatchScore] SET DATE_CORRELATION_OPTIMIZATION OFF 
+GO
+ALTER DATABASE [MatchScore] SET TRUSTWORTHY OFF 
+GO
+ALTER DATABASE [MatchScore] SET ALLOW_SNAPSHOT_ISOLATION OFF 
+GO
+ALTER DATABASE [MatchScore] SET PARAMETERIZATION SIMPLE 
+GO
+ALTER DATABASE [MatchScore] SET READ_COMMITTED_SNAPSHOT ON 
+GO
+ALTER DATABASE [MatchScore] SET HONOR_BROKER_PRIORITY OFF 
+GO
+ALTER DATABASE [MatchScore] SET RECOVERY FULL 
+GO
+ALTER DATABASE [MatchScore] SET  MULTI_USER 
+GO
+ALTER DATABASE [MatchScore] SET PAGE_VERIFY CHECKSUM  
+GO
+ALTER DATABASE [MatchScore] SET DB_CHAINING OFF 
+GO
+ALTER DATABASE [MatchScore] SET FILESTREAM( NON_TRANSACTED_ACCESS = OFF ) 
+GO
+ALTER DATABASE [MatchScore] SET TARGET_RECOVERY_TIME = 60 SECONDS 
+GO
+ALTER DATABASE [MatchScore] SET DELAYED_DURABILITY = DISABLED 
+GO
+ALTER DATABASE [MatchScore] SET ACCELERATED_DATABASE_RECOVERY = OFF  
+GO
+EXEC sys.sp_db_vardecimal_storage_format N'MatchScore', N'ON'
+GO
+ALTER DATABASE [MatchScore] SET QUERY_STORE = OFF
+GO
+USE [MatchScore]
+GO
+/****** Object:  Table [dbo].[__EFMigrationsHistory]    Script Date: 06.12.2022 г. 00:30:24 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[__EFMigrationsHistory](
+	[MigrationId] [nvarchar](150) NOT NULL,
+	[ProductVersion] [nvarchar](32) NOT NULL,
+ CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY CLUSTERED 
+(
+	[MigrationId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Awards]    Script Date: 06.12.2022 г. 00:30:24 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Awards](
+	[AwardId] [int] IDENTITY(1,1) NOT NULL,
+	[EventId] [int] NULL,
+	[Rank] [int] NOT NULL,
+	[Prize] [money] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+ CONSTRAINT [PK_Awards] PRIMARY KEY CLUSTERED 
+(
+	[AwardId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Events]    Script Date: 06.12.2022 г. 00:30:24 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Events](
+	[EventId] [int] IDENTITY(1,1) NOT NULL,
+	[Title] [nvarchar](max) NULL,
+	[EventType] [int] NOT NULL,
+	[StartDate] [datetime2](7) NOT NULL,
+	[EndDate] [datetime2](7) NOT NULL,
+	[IsTeamEvent] [bit] NOT NULL,
+	[LocationId] [int] NOT NULL,
+	[matchType] [int] NOT NULL,
+	[MatchLimitValue] [int] NOT NULL,
+	[ScoreForWin] [int] NOT NULL,
+	[ScoreForDraw] [int] NOT NULL,
+	[ChampionId] [int] NULL,
+	[DirectorId] [int] NULL,
+	[IsCompleted] [bit] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+ CONSTRAINT [PK_Events] PRIMARY KEY CLUSTERED 
+(
+	[EventId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Locations]    Script Date: 06.12.2022 г. 00:30:24 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Locations](
+	[LocationId] [int] IDENTITY(1,1) NOT NULL,
+	[City] [nvarchar](max) NULL,
+	[Country] [int] NOT NULL,
+	[Latitude] [nvarchar](max) NULL,
+	[Longitude] [nvarchar](max) NULL,
+ CONSTRAINT [PK_Locations] PRIMARY KEY CLUSTERED 
+(
+	[LocationId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Matches]    Script Date: 06.12.2022 г. 00:30:24 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Matches](
+	[MatchId] [int] IDENTITY(1,1) NOT NULL,
+	[Date] [datetime2](7) NOT NULL,
+	[EventId] [int] NULL,
+	[LocationId] [int] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+	[Discriminator] [nvarchar](max) NOT NULL,
+	[MatchScoreLimit] [int] NULL,
+	[PlayerTimeLimit] [int] NULL,
+	[MatchTimeLimit] [int] NULL,
+ CONSTRAINT [PK_Matches] PRIMARY KEY CLUSTERED 
+(
+	[MatchId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Players]    Script Date: 06.12.2022 г. 00:30:24 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Players](
+	[PlayerId] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [nvarchar](40) NULL,
+	[Photo] [varbinary](max) NULL,
+	[IsTeam] [bit] NOT NULL,
+	[Country] [int] NULL,
+	[SportsClubId] [int] NULL,
+	[IsInactive] [bit] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+ CONSTRAINT [PK_Players] PRIMARY KEY CLUSTERED 
+(
+	[PlayerId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Rankings]    Script Date: 06.12.2022 г. 00:30:24 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Rankings](
+	[EventId] [int] NOT NULL,
+	[PlayerId] [int] NOT NULL,
+	[Rank] [int] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+ CONSTRAINT [PK_Rankings] PRIMARY KEY CLUSTERED 
+(
+	[PlayerId] ASC,
+	[EventId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Requests]    Script Date: 06.12.2022 г. 00:30:24 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Requests](
+	[RequestId] [int] IDENTITY(1,1) NOT NULL,
+	[RequestType] [int] NOT NULL,
+	[RequestStatus] [int] NOT NULL,
+	[CreatedOn] [datetime2](7) NOT NULL,
+	[UserId] [int] NULL,
+	[PlayerId] [int] NULL,
+	[IsDeleted] [bit] NOT NULL,
+ CONSTRAINT [PK_Requests] PRIMARY KEY CLUSTERED 
+(
+	[RequestId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Scores]    Script Date: 06.12.2022 г. 00:30:24 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Scores](
+	[MatchId] [int] NOT NULL,
+	[PlayerId] [int] NOT NULL,
+	[Round] [int] NOT NULL,
+	[PlayerScore] [float] NULL,
+	[ScoredPoints] [int] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+ CONSTRAINT [PK_Scores] PRIMARY KEY CLUSTERED 
+(
+	[MatchId] ASC,
+	[PlayerId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[SportsClubs]    Script Date: 06.12.2022 г. 00:30:24 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[SportsClubs](
+	[SportsClubId] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [nvarchar](40) NULL,
+	[IsDeleted] [bit] NOT NULL,
+ CONSTRAINT [PK_SportsClubs] PRIMARY KEY CLUSTERED 
+(
+	[SportsClubId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Users]    Script Date: 06.12.2022 г. 00:30:24 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Users](
+	[UserId] [int] IDENTITY(1,1) NOT NULL,
+	[Username] [nvarchar](max) NULL,
+	[PasswordSalt] [varbinary](max) NULL,
+	[PasswordHash] [varbinary](max) NULL,
+	[Email] [nvarchar](max) NULL,
+	[Role] [int] NOT NULL,
+	[CreatedOn] [datetime2](7) NOT NULL,
+	[PlayerId] [int] NULL,
+	[IsInactive] [bit] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+ CONSTRAINT [PK_Users] PRIMARY KEY CLUSTERED 
+(
+	[UserId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Awards_EventId]    Script Date: 06.12.2022 г. 00:30:24 ******/
+CREATE NONCLUSTERED INDEX [IX_Awards_EventId] ON [dbo].[Awards]
+(
+	[EventId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Events_ChampionId]    Script Date: 06.12.2022 г. 00:30:24 ******/
+CREATE NONCLUSTERED INDEX [IX_Events_ChampionId] ON [dbo].[Events]
+(
+	[ChampionId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Events_DirectorId]    Script Date: 06.12.2022 г. 00:30:24 ******/
+CREATE NONCLUSTERED INDEX [IX_Events_DirectorId] ON [dbo].[Events]
+(
+	[DirectorId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Events_LocationId]    Script Date: 06.12.2022 г. 00:30:24 ******/
+CREATE NONCLUSTERED INDEX [IX_Events_LocationId] ON [dbo].[Events]
+(
+	[LocationId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Matches_EventId]    Script Date: 06.12.2022 г. 00:30:24 ******/
+CREATE NONCLUSTERED INDEX [IX_Matches_EventId] ON [dbo].[Matches]
+(
+	[EventId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Matches_LocationId]    Script Date: 06.12.2022 г. 00:30:24 ******/
+CREATE NONCLUSTERED INDEX [IX_Matches_LocationId] ON [dbo].[Matches]
+(
+	[LocationId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Players_SportsClubId]    Script Date: 06.12.2022 г. 00:30:24 ******/
+CREATE NONCLUSTERED INDEX [IX_Players_SportsClubId] ON [dbo].[Players]
+(
+	[SportsClubId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Rankings_EventId]    Script Date: 06.12.2022 г. 00:30:24 ******/
+CREATE NONCLUSTERED INDEX [IX_Rankings_EventId] ON [dbo].[Rankings]
+(
+	[EventId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Requests_PlayerId]    Script Date: 06.12.2022 г. 00:30:24 ******/
+CREATE NONCLUSTERED INDEX [IX_Requests_PlayerId] ON [dbo].[Requests]
+(
+	[PlayerId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Requests_UserId]    Script Date: 06.12.2022 г. 00:30:24 ******/
+CREATE NONCLUSTERED INDEX [IX_Requests_UserId] ON [dbo].[Requests]
+(
+	[UserId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Scores_PlayerId]    Script Date: 06.12.2022 г. 00:30:24 ******/
+CREATE NONCLUSTERED INDEX [IX_Scores_PlayerId] ON [dbo].[Scores]
+(
+	[PlayerId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Users_PlayerId]    Script Date: 06.12.2022 г. 00:30:24 ******/
+CREATE NONCLUSTERED INDEX [IX_Users_PlayerId] ON [dbo].[Users]
+(
+	[PlayerId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[Awards]  WITH CHECK ADD  CONSTRAINT [FK_Awards_Events_EventId] FOREIGN KEY([EventId])
+REFERENCES [dbo].[Events] ([EventId])
+GO
+ALTER TABLE [dbo].[Awards] CHECK CONSTRAINT [FK_Awards_Events_EventId]
+GO
+ALTER TABLE [dbo].[Events]  WITH CHECK ADD  CONSTRAINT [FK_Events_Locations_LocationId] FOREIGN KEY([LocationId])
+REFERENCES [dbo].[Locations] ([LocationId])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Events] CHECK CONSTRAINT [FK_Events_Locations_LocationId]
+GO
+ALTER TABLE [dbo].[Events]  WITH CHECK ADD  CONSTRAINT [FK_Events_Players_ChampionId] FOREIGN KEY([ChampionId])
+REFERENCES [dbo].[Players] ([PlayerId])
+GO
+ALTER TABLE [dbo].[Events] CHECK CONSTRAINT [FK_Events_Players_ChampionId]
+GO
+ALTER TABLE [dbo].[Events]  WITH CHECK ADD  CONSTRAINT [FK_Events_Users_DirectorId] FOREIGN KEY([DirectorId])
+REFERENCES [dbo].[Users] ([UserId])
+GO
+ALTER TABLE [dbo].[Events] CHECK CONSTRAINT [FK_Events_Users_DirectorId]
+GO
+ALTER TABLE [dbo].[Matches]  WITH CHECK ADD  CONSTRAINT [FK_Matches_Events_EventId] FOREIGN KEY([EventId])
+REFERENCES [dbo].[Events] ([EventId])
+GO
+ALTER TABLE [dbo].[Matches] CHECK CONSTRAINT [FK_Matches_Events_EventId]
+GO
+ALTER TABLE [dbo].[Matches]  WITH CHECK ADD  CONSTRAINT [FK_Matches_Locations_LocationId] FOREIGN KEY([LocationId])
+REFERENCES [dbo].[Locations] ([LocationId])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Matches] CHECK CONSTRAINT [FK_Matches_Locations_LocationId]
+GO
+ALTER TABLE [dbo].[Players]  WITH CHECK ADD  CONSTRAINT [FK_Players_SportsClubs_SportsClubId] FOREIGN KEY([SportsClubId])
+REFERENCES [dbo].[SportsClubs] ([SportsClubId])
+GO
+ALTER TABLE [dbo].[Players] CHECK CONSTRAINT [FK_Players_SportsClubs_SportsClubId]
+GO
+ALTER TABLE [dbo].[Rankings]  WITH CHECK ADD  CONSTRAINT [FK_Rankings_Events_EventId] FOREIGN KEY([EventId])
+REFERENCES [dbo].[Events] ([EventId])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Rankings] CHECK CONSTRAINT [FK_Rankings_Events_EventId]
+GO
+ALTER TABLE [dbo].[Rankings]  WITH CHECK ADD  CONSTRAINT [FK_Rankings_Players_PlayerId] FOREIGN KEY([PlayerId])
+REFERENCES [dbo].[Players] ([PlayerId])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Rankings] CHECK CONSTRAINT [FK_Rankings_Players_PlayerId]
+GO
+ALTER TABLE [dbo].[Requests]  WITH CHECK ADD  CONSTRAINT [FK_Requests_Players_PlayerId] FOREIGN KEY([PlayerId])
+REFERENCES [dbo].[Players] ([PlayerId])
+GO
+ALTER TABLE [dbo].[Requests] CHECK CONSTRAINT [FK_Requests_Players_PlayerId]
+GO
+ALTER TABLE [dbo].[Requests]  WITH CHECK ADD  CONSTRAINT [FK_Requests_Users_UserId] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([UserId])
+GO
+ALTER TABLE [dbo].[Requests] CHECK CONSTRAINT [FK_Requests_Users_UserId]
+GO
+ALTER TABLE [dbo].[Scores]  WITH CHECK ADD  CONSTRAINT [FK_Scores_Matches_MatchId] FOREIGN KEY([MatchId])
+REFERENCES [dbo].[Matches] ([MatchId])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Scores] CHECK CONSTRAINT [FK_Scores_Matches_MatchId]
+GO
+ALTER TABLE [dbo].[Scores]  WITH CHECK ADD  CONSTRAINT [FK_Scores_Players_PlayerId] FOREIGN KEY([PlayerId])
+REFERENCES [dbo].[Players] ([PlayerId])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Scores] CHECK CONSTRAINT [FK_Scores_Players_PlayerId]
+GO
+ALTER TABLE [dbo].[Users]  WITH CHECK ADD  CONSTRAINT [FK_Users_Players_PlayerId] FOREIGN KEY([PlayerId])
+REFERENCES [dbo].[Players] ([PlayerId])
+GO
+ALTER TABLE [dbo].[Users] CHECK CONSTRAINT [FK_Users_Players_PlayerId]
+GO
+USE [master]
+GO
+ALTER DATABASE [MatchScore] SET  READ_WRITE 
+GO

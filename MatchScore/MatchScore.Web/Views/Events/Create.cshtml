@@ -1,0 +1,194 @@
+﻿@inject MatchScore.Services.Services.Contracts.ILocationsService locationService;
+@inject Microsoft.JSInterop.IJSRuntime js;
+@model MatchScore.Web.ViewModels.EventViewModels.EventCreateVM
+@using MatchScore.Web.ViewModels.LocationViewModels
+@using MatchScore.Data.Models;
+@using MatchScore.Web.Helpers;
+
+@{
+    this.ViewData["Title"] = "Create Post";
+    this.ViewData["EventsActive"] = "active";
+    var eventTypesSelection = this.ViewData["EventTypes"] as SelectList;
+    var matchTypesSelection = this.ViewData["MatchTypes"] as SelectList;
+    var locationsList = this.locationService.GetAll();
+    var coordinates = (List<string>)this.ViewData["Coordinates"];
+    var locationsSelection = new SelectList(locationsList, "LocationId", "City");
+
+}
+
+@{
+    DateTime startDate, endDate;
+    if (this.Model.StartDate == DateTime.MinValue)
+    {
+        startDate = DateTime.Today;
+    }
+    else
+    {
+        startDate = this.Model.StartDate;
+    }
+    if (this.Model.EndDate == DateTime.MinValue)
+    {
+        endDate = DateTime.Today;
+    }
+    else
+    {
+        endDate = this.Model.StartDate;
+    }
+}
+
+<script type="text/javascript">manageLeagueFields()</script>
+
+
+<div class="site-section">
+    <div class="container">
+        <div class="p-5 bg-dark row">
+            <div class="col-lg-7">
+                <form asp-controller="Events" asp-action="Create" method="post">
+                    <div class="form-group">
+                        <label class="label" asp-for="Title">Event title</label>
+                        <input id="title" asp-for="Title" type="text" class="input-group form-control w-75" placeholder="Title">
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="label" asp-for="StartDate">Start date</label>
+                        <input class="form-control" asp-for="StartDate" type="date" value="@startDate.ToString("yyyy-MM-dd")">
+                        <span asp-validation-for="StartDate" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="EndDate">End date</label>
+                        <input class="form-control" asp-for="EndDate" type="date" value="@endDate.ToString("yyyy-MM-dd")">
+                        <span asp-validation-for="EndDate" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="EventType">Event type</label>
+                        <select id="eventType" class="event-select" asp-for="EventType" type="" asp-items="@eventTypesSelection" onchange="manageLeagueFields()"></select>
+                    </div>
+                    <div class="form-group">
+                        <label id="pointsForWinLabel" asp-for="ScoreForWin">Points for Victory</label>
+                        <input id="pointsForWinInput" class="input-group-lg event-select width-30" asp-for="ScoreForWin" type="text" />
+                    </div>
+                    <div class="form-group">
+                        <label id="pointsForDrawLabel" asp-for="ScoreForDraw">Points for Draw</label>
+                        <input id="pointsForDrawInput" class="input-group-lg event-select width-30" asp-for="ScoreForDraw" type="text" />
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="LocationId">City</label>
+                        <select class="event-select" id="location" asp-for="LocationId" asp-items="@locationsSelection"></select>
+                        @{
+                            int id = Model.LocationId;
+                        }
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="matchType">Match type</label>
+                        <select class="event-select" asp-for="matchType" type="" asp-items="@matchTypesSelection"></select>
+                    </div>
+                    <div>
+                        <label asp-for="MatchLimitValue">Match Limit Value</label>
+                        <input class="input-group-lg event-select w-" asp-for="MatchLimitValue" type="text" />
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="IsTeamEvent">Team event</label>
+                        <input asp-for="IsTeamEvent" type="checkbox" />
+                    </div>
+
+                    <div class="form-group">
+                        <input type="submit" class="btn btn-primary mt-3 py-3 px-5" value="Create Event">
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-lg-4">
+                <div id='myMap' style='width: 450px; height: 450px;'></div>
+                <input type="button" value="Create New Location" class="btn btn-primary mt-3 py-3 px-5" onclick="location.href='@Url.Action("Create", "Locations")'" />
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/location.js"></script>
+
+@section Scripts {
+    <script type='text/javascript'>
+    window.onload = function () {
+        manageLeagueFields();
+    };
+
+    $("select#location").change(function () {
+        var city = $(this).find("option:selected").text();
+        getSelectedLocation(city);
+    });
+
+    function getSelectedLocation(city) {
+        $.ajax({
+            type: 'GET',
+            dataType: 'JSON',
+            url: "http://dev.virtualearth.net/REST/v1/Locations?query=" + city + "&includeNeighborhood=0&incl=queryParse,ciso2&key=8BbtzJvAqA5bXCzcnTcd~yrMD5WUhGOr6IAqMsIRAEw~Agt1ygXkoxFeVN50i32C8FRDbd19RAng3vvcPi8Ti9u2vf_FSgjWPzl8QwzDxAqL",
+            success: function (response) {
+                coordinates = response['resourceSets'][0]['resources'][0]['point']['coordinates']
+                refreshMap(coordinates[0], coordinates[1])
+            },
+            error: function (error) {
+                alert(error);
+            }
+        });
+    }
+
+    function refreshMap(long, lat) {
+        var map = new Microsoft.Maps.Map(document.getElementById('myMap'), {
+            mapTypeId: Microsoft.Maps.MapTypeId.road,
+            center: new Microsoft.Maps.Location(long, lat),
+            zoom: 8
+        });
+
+        var pushpin = new Microsoft.Maps.Pushpin(map.getCenter(), {
+            icon: 'https://www.bingmapsportal.com/Content/images/poi_custom.png',
+            anchor: new Microsoft.Maps.Point(0, 50),
+
+        });
+        map.entities.push(pushpin);
+    }
+
+    function loadMapScenario() {
+            var map = new Microsoft.Maps.Map(document.getElementById('myMap'), {
+                mapTypeId: Microsoft.Maps.MapTypeId.road,
+                center: new Microsoft.Maps.Location(@coordinates[0], @coordinates[1]),
+            zoom: 8
+            });
+
+            var pushpin = new Microsoft.Maps.Pushpin(map.getCenter(), {
+                icon: 'https://www.bingmapsportal.com/Content/images/poi_custom.png',
+                anchor: new Microsoft.Maps.Point(0, 50),
+
+            });
+            map.entities.push(pushpin);
+    }
+
+    function manageLeagueFields() {
+        const eventType = document.getElementById('eventType');
+        const pointsForWinLabel = document.getElementById('pointsForWinLabel');
+        const pointsForWinInput = document.getElementById('pointsForWinInput');
+        const pointsForDrawLabel = document.getElementById('pointsForDrawLabel');
+        const pointsForDrawInput = document.getElementById('pointsForDrawInput');
+        if (event.target.value == 2) {
+            pointsForWinLabel.hidden = false;
+            pointsForWinInput.hidden = false;
+            pointsForDrawLabel.hidden = false;
+            pointsForDrawInput.hidden = false;
+        }
+        else {
+            pointsForWinLabel.hidden = true;
+            pointsForWinInput.hidden = true;
+            pointsForDrawLabel.hidden = true;
+            pointsForDrawInput.hidden = true;
+        }
+    }
+    </script>
+    <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?key=8BbtzJvAqA5bXCzcnTcd~yrMD5WUhGOr6IAqMsIRAEw~Agt1ygXkoxFeVN50i32C8FRDbd19RAng3vvcPi8Ti9u2vf_FSgjWPzl8QwzDxAqL&callback=loadMapScenario' async defer></script>
+
+
+}
+
+
+
+

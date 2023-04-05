@@ -1,0 +1,218 @@
+﻿@model UserListVM;
+
+@{
+    this.ViewData["Title"] = "All users";
+    this.ViewData["UsersActive"] = "active";
+    this.ViewData["PageTitle"] = "Users";
+    this.ViewData["PageSubtitle"] = "List of all users";
+}
+
+<div class="site-section">
+    <div class="container">
+        @*Search Box*@
+        <div class="search-create-menu">
+            <form asp-controller="Users" asp-action="Index" method="get">
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                        Search
+                    </button>
+                    <menu class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                        <li><input class="text-input" type="hidden" name="SortBy" value="username" /></li>
+                        <li>User<input class="text-input" type="text" name="Username" /></li>
+                        <li>Player<input class="text-input" type="text" name="Player" /></li>
+                        <li><input type="submit" value="Search" class="btn btn-primary" /></li>
+                    </menu>
+                </div>
+            </form>
+        </div>
+        <table class="table custom-table table-dark">
+            @*Header cells*@
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">
+                        <a asp-controller="Users"
+                           asp-action="Index"
+                           asp-route-SortBy="username"
+                           asp-route-SortOrder="@{
+                                                if(this.ViewData.ContainsKey("SortBy"))
+                                                {
+                                                    if(this.ViewData["SortBy"] != null)
+                                                    {
+                                                        if(this.ViewData["SortBy"].Equals("username"))
+                                                        {
+                                                                @this.ViewData["SortOrder"]
+                                                        }
+                                                    }
+                                                }
+                            }" asp-route-PaginationSortOrder="@this.ViewData["SortOrder"]"
+                           asp-route-IsHeader="true"
+                           class="text-white">Username</a>
+                    </th>
+                    <th scope="col">
+                        <a asp-controller="Users"
+                           asp-action="Index"
+                           asp-route-SortBy="role"
+                           asp-route-SortOrder="@{
+                                                if(this.ViewData.ContainsKey("SortBy"))
+                                                {
+                                                    if(this.ViewData["SortBy"] != null)
+                                                    {
+                                                        if(this.ViewData["SortBy"].Equals("role"))
+                                                        {
+                                                                @this.ViewData["SortOrder"]
+                                                        }
+                                                    }
+                                                }
+                            }" asp-route-PaginationSortOrder="@this.ViewData["SortOrder"]"
+                           asp-route-IsHeader="true"
+                           class="text-white">Role</a>
+                    </th>
+                    <th scope="col">
+                        <a asp-controller="Users"
+                           asp-action="Index"
+                           asp-route-SortBy="player"
+                           asp-route-SortOrder="@{
+                                                if(this.ViewData.ContainsKey("SortBy"))
+                                                {
+                                                    if(this.ViewData["SortBy"] != null)
+                                                        {
+                                                        if(this.ViewData["SortBy"].Equals("player"))
+                                                        {
+                                                                @this.ViewData["SortOrder"]
+                                                        }
+                                                    }
+                                                }
+                            }" asp-route-PaginationSortOrder="@this.ViewData["SortOrder"]"
+                           asp-route-IsHeader="true"
+                           class="text-white">Player profile</a>
+                    </th>
+                    <th scope="col">
+                        <a asp-controller="Users"
+                           asp-action="Index"
+                           asp-route-SortBy="events"
+                           asp-route-SortOrder="@{
+                                                if(this.ViewData.ContainsKey("SortBy"))
+                                                {
+                                                    if(this.ViewData["SortBy"] != null)
+                                                    {
+                                                        if(this.ViewData["SortBy"].Equals("events"))
+                                                        {
+                                                                @this.ViewData["SortOrder"]
+                                                        }
+                                                    }
+                                                }
+                            }" asp-route-PaginationSortOrder="@this.ViewData["SortOrder"]"
+                           asp-route-IsHeader="true"
+                           class="text-white">Total events</a>
+                    </th>
+                    <th scope="col">
+                        <a asp-controller="Users"
+                           asp-action="Index"
+                           asp-route-SortBy="status"
+                           asp-route-SortOrder="@{
+                                                if(this.ViewData.ContainsKey("SortBy"))
+                                                {
+                                                    if(this.ViewData["SortBy"] != null)
+                                                    {
+                                                        if(this.ViewData["SortBy"].Equals("status"))
+                                                        {
+                                                                @this.ViewData["SortOrder"]
+                                                        }
+                                                    }
+                                                }
+                            }" asp-route-PaginationSortOrder="@this.ViewData["SortOrder"]"
+                           asp-route-IsHeader="true"
+                           class="text-white">Status</a>
+                    </th>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <th scope="col">Actions</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (UserIndexVM user in Model.Users)
+                {
+                    <tr>
+                        @{
+                            var rowNumber = this.Model.Users.IndexOf(user) + 1;
+                        }
+
+                        <th scope="row">@rowNumber</th>
+                        <td>
+                            <a class="table-text" asp-controller="Users" asp-action="Details" asp-route-userId="@user.UserId">@user.Username</a>
+                        </td>
+                        <td>@user.Role</td>
+                        <td>
+                            @if (user.PlayerName != null)
+                            {
+                                <a class="table-text" asp-controller="Players" asp-action="Details" asp-route-id="@user.PlayerId">@user.PlayerName</a>
+                            }
+                            else
+                            {
+                                <div class="badge badge-warning">No player profile associated</div>
+                            }
+                        </td>
+                        <td>@user.EventsCount</td>
+                        <td>
+                            @if (!user.IsInactive)
+                            {
+                                <div class="badge badge-success">Active</div>
+                            }
+                            else
+                            {
+                                <div class="badge badge-warning">Inactive</div>
+                            }
+                        </td>
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <td>
+                                @if (User.Claims.FirstOrDefault(c => c.Type.Equals("Role")).Value.Equals("Admin"))
+                                {
+                                    <a class="btn btn-warning btn-sm" asp-controller="Users" asp-action="Edit" asp-route-userId="@user.UserId">Edit</a>
+                                    if (!user.IsInactive)
+                                    {
+                                        <a class="btn btn-warning btn-sm" asp-controller="Users" asp-action="ChangeStatus" asp-route-id="@user.UserId">Deactivate</a>
+                                    }
+                                    else
+                                    {
+                                        <a class="btn btn-warning btn-sm" asp-controller="Users" asp-action="ChangeStatus" asp-route-id="@user.UserId">Activate</a>
+                                    }
+                                    <a class="btn btn-warning btn-sm" asp-controller="Users" asp-action="Delete" asp-route-id="@user.UserId">Delete</a>
+                                }
+                                else if (User.Claims.FirstOrDefault(c => c.Type.Equals("Username")).Value.Equals(user.Username))
+                                {
+                                    <a class="btn btn-warning btn-sm" asp-controller="Users" asp-action="Edit" asp-route-userId="@user.UserId">Edit</a>
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@*Pagination buttons*@
+@{
+    string prevButtonState = !this.Model.HasPrevPage ? "disabled" : "";
+    string nextButtonState = !this.Model.HasNextPage ? "disabled" : "";
+}
+
+<div class="btn-pagination text-center">
+    <a class="btn btn-primary @prevButtonState"
+       asp-controller="Users"
+       asp-action="Index"
+       asp-route-SortBy="@this.ViewData["SortBy"]"
+       asp-route-SortOrder="@this.ViewData["PaginationSortOrder"]"
+       asp-route-PaginationSortOrder="@this.ViewData["PaginationSortOrder"]"
+       asp-route-CurrentPage="@(this.Model.CurrentPage - 1)">Prev</a>
+    <a class="btn btn-primary @nextButtonState"
+       asp-controller="Users"
+       asp-action="Index"
+       asp-route-SortBy="@this.ViewData["SortBy"]"
+       asp-route-SortOrder="@this.ViewData["PaginationSortOrder"]"
+       asp-route-PaginationSortOrder="@this.ViewData["PaginationSortOrder"]"
+       asp-route-CurrentPage="@(this.Model.CurrentPage + 1)">Next</a>
+</div>

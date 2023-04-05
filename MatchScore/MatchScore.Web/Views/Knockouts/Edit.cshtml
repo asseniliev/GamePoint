@@ -1,0 +1,199 @@
+﻿@using MatchScore.Web.ViewModels.EventViewModels;
+@model MultiRoundEventVM;
+
+
+<link href="~/css/brackets.css" rel="stylesheet" />
+
+@* Hero *@
+<div class="sm-hero">
+    <div class="hero overlay">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-10 ml-auto">
+                    <h1 class="text-white">@Model.Title</h1>
+                    <p>Edit scores from latest matches in your knockout event.</p>
+                    <p>Each match must have a winner in this scheme!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section id="bracket">
+    <div class="container">
+        <div class="split split-one">
+            @{int bracketId = 1;
+                for (int round = 0; round < this.Model.MatchScheme.Count; round++)
+                {
+                    string roundClass = "";
+                    switch (round)
+                    {
+                        case (0):
+                            roundClass = "round-one";
+                            break;
+                        case (1):
+                            roundClass = "round-two";
+                            break;
+                        case (2):
+                            roundClass = "round-three";
+                            break;
+                        case (3):
+                            roundClass = "round-four";
+                            break;
+                        case (4):
+                            roundClass = "round-five";
+                            break;
+                    }
+                    roundClass = "round " + @roundClass + " current";
+                <div class="@roundClass">
+                    <div class="round-details">
+                        @if (round == this.Model.MatchScheme.Count - 1)  //this is the case of the final match for the trophy
+                        {
+                            <i class="fa fa-trophy"></i><br />
+                            <span class="date">@this.Model.EventEndDate.ToString("dd.MM.yyyy")</span>
+                        }
+                        else
+                        {
+                            string roundHeader = "Round " + (round + 1).ToString();
+                            @roundHeader <br />
+                            @*<span class="date">March 16</span>*@
+                        }
+                    </div>
+                    @foreach (var match in this.Model.MatchScheme[round])
+                    {
+                        string player1 = "";
+                        string player2 = "";
+                        double? player1Score = null;
+                        double? player2Score = null;
+                        bool thisMatchHasScore = false;
+                        bool thisMatchHasDependency = false;
+                        string action = "";
+                        string buttonText = "";
+                        if (match.Players.Count > 0)
+                        {
+                            player1 = match.Players[0].Name;
+                            if (match.Players.Count > 1)
+                                player2 = match.Players[1].Name;
+                        }
+                        {
+                            if (Model.MatchScores.ContainsKey(match.MatchId))
+                            {
+                                player1Score = @Model.MatchScores[match.MatchId][0];
+                                if (@Model.MatchScores[match.MatchId].Count > 1)
+                                    player2Score = @Model.MatchScores[match.MatchId][1];
+
+                            }
+                            if (this.Model.MatchIDsWithScores.Contains(match.MatchId))
+                            {
+                                thisMatchHasScore = true;
+                                action = "ResetScore";
+                                buttonText = "Reset Score";
+                            }
+                            else
+                            {
+                                action = "Edit";
+                                buttonText = "Save Result";
+                            }
+
+                            if (this.Model.DependentMatchesIDs.Contains(match.MatchId))
+                            {
+                                thisMatchHasDependency = true;
+
+                            }
+                        }
+                        <form asp-controller="Knockouts" asp-action="@action" method="post">
+                            <input type="hidden" asp-for="@Model.MatchId" value="@match.MatchId" />
+                            <input type="hidden" asp-for="@Model.EventId" value="@Model.EventId" />
+                            <ul class="matchup">
+                                @{
+                                    string score1Id = "score1" + bracketId.ToString();
+                                    string score2Id = "score2" + bracketId.ToString();
+                                    string submitId = "submit" + bracketId.ToString();
+
+                                    <li class="team team-top">
+                                        @player1
+                                        @if (thisMatchHasScore)
+                                        {
+                                            <input id="@score1Id" class="scoreinput score" type="text" asp-for="@Model.Player1Score" value="@player1Score" disabled>
+                                        }
+                                        else
+                                        {
+                                            <input id="@score1Id" class="scoreinput score" type="text" asp-for="@Model.Player1Score" value="@player1Score" oninput="manageSubmitButton(@bracketId)">
+                                        }
+
+                                    </li>
+                                    <li class="team team-bottom">
+                                        @player2
+                                        @if (thisMatchHasScore)
+                                        {
+                                            <input id="@score2Id" class="scoreinput score" type="text" asp-for="@Model.Player2Score" value="@player2Score" disabled>
+                                        }
+                                        else
+                                        {
+                                            <input id="@score2Id" class="scoreinput score" type="text" asp-for="@Model.Player2Score" value="@player2Score"  oninput="manageSubmitButton(@bracketId)">
+                                        }
+                                    </li>
+                                    <li style="background: none">
+                                        @if (!thisMatchHasDependency && player1 != "" && player2 != "")
+                                        {
+                                            <input id="@submitId" class="btn btn-primary mt-2" type="submit" value="@buttonText" />
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        </form>
+                        bracketId++;
+                    }
+                </div>
+                }
+            }
+        </div>
+    </div>
+
+    <form asp-controller="Events" asp-action="Edit" method="get">
+        <input type="hidden" asp-for="EventId" value="@this.Model.EventId" />
+        <input type="submit" value="Back to Event" class="btn btn-primary fa-lg gradient-custom-2 ml-4" />
+    </form>
+</section>
+
+@*<script src="~/js/knockout.js"></script>*@
+
+@section Scripts {
+    <script type="text/javascript">
+
+        window.onload = function () {
+            const buttons = document.querySelectorAll('input[type="submit"]');
+            //console.log(buttons);
+            buttons.forEach(b => {
+                let matchId = b.id[b.id.length - 1];
+                let scoreId = 'score1' + matchId;
+                let scoreValue = document.getElementById(scoreId);
+                if (scoreValue.value == "") b.hidden = true;                
+            });
+        };
+
+        function manageSubmitButton(bracketId) {
+
+            const score1Id = 'score1' + bracketId;
+            const score2Id = 'score2' + bracketId;
+            const submitId = 'submit' + bracketId;
+
+
+            const score1 = document.getElementById(score1Id);
+            const score2 = document.getElementById(score2Id);
+            const submit = document.getElementById(submitId);
+
+            if (score1.value != "" && score2.value != "") {
+                if (score1.value != score2.value) {
+                    submit.hidden = false;
+                }
+                else
+                    submit.hidden = true;
+            }
+            else submit.hidden = true;
+        }
+    </script>
+}
+
+
+

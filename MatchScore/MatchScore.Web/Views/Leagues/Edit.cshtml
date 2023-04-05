@@ -1,0 +1,203 @@
+﻿@using MatchScore.Web.ViewModels.EventViewModels;
+@model MultiRoundEventVM;
+
+<link href="~/css/brackets.css" rel="stylesheet" />
+
+@* Hero *@
+<div class="sm-hero">
+    <div class="hero overlay">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-10 ml-auto">
+                    <h1 class="text-white">@Model.Title</h1>
+                    <p>Edit scores from the latest matches in your league event.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section id="bracket">
+    <div class="container">
+        <h1>Saturday Session</h1>
+        <br /><br />
+    </div>
+    
+    <div class="container">
+        <div class="split split-one">
+            @for (int round = 0; round < this.Model.MatchScheme.Count / 2; round++)
+            {
+                <div class="round round-one current">
+                    <div class="round-details">
+                        @{
+                            string roundHeader = "Round " + (round + 1).ToString();
+                            @roundHeader <br />
+                            @*<span class="date">March 16</span>*@
+                        }
+                    </div>
+                    @{
+                        foreach (var match in this.Model.MatchScheme[round])
+                        {
+                            string player1 = "";
+                            string player2 = "";
+                            double? player1Score = null;
+                            double? player2Score = null;
+                            bool thisMatchHasScore = false;
+                            string action = "";
+                            string buttonText = "";
+
+                            player1 = match.Players[0].Name;
+                            player2 = match.Players[1].Name;
+
+                            if (Model.MatchScores.ContainsKey(match.MatchId))
+                            {
+                                player1Score = @Model.MatchScores[match.MatchId][0];
+                                player2Score = @Model.MatchScores[match.MatchId][1];
+                            }
+
+                            if (this.Model.MatchIDsWithScores.Contains(match.MatchId))
+                            {
+                                thisMatchHasScore = true;
+                                action = "ResetScore";
+                                buttonText = "Reset Score";
+                            }
+                            else
+                            {
+                                action = "Edit";
+                                buttonText = "Save Result";
+                            }
+
+                            <form asp-controller="Leagues" asp-action="@action" method="post">
+                                <input type="hidden" asp-for="@Model.MatchId" value="@match.MatchId" />
+                                <input type="hidden" asp-for="@Model.EventId" value="@Model.EventId" />
+                                <ul class="matchup">
+                                    <li class="team team-top">
+                                        @player1
+                                        @if (thisMatchHasScore)
+                                        {
+                                            <input class="scoreinput score" type="text" asp-for="@Model.Player1Score" value="@player1Score" disabled>
+                                        }
+                                        else
+                                        {
+                                            <input class="scoreinput score" type="text" asp-for="@Model.Player1Score" value="@player1Score">
+                                        }
+
+                                    </li>
+                                    <li class="team team-bottom">
+                                        @player2
+                                        @if (thisMatchHasScore)
+                                        {
+                                            <input class="scoreinput score" type="text" asp-for="@Model.Player2Score" value="@player2Score" disabled>
+                                        }
+                                        else
+                                        {
+                                            <input class="scoreinput score" type="text" asp-for="@Model.Player2Score" value="@player2Score">
+                                        }
+                                    </li>
+                                    <li style="background: none">
+                                        <input class="btn btn-primary mt-2" type="submit" value="@buttonText" />
+                                    </li>
+                                </ul>
+                            </form>
+                        }
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+
+    <div class="container">
+        <h1>Sunday Session</h1>
+        <br /><br />
+    </div>
+
+    <div class="container">
+        <div class="split split-one">
+            @for (int round = this.Model.MatchScheme.Count / 2; round < this.Model.MatchScheme.Count; round++)
+            {
+                <div class="round round-one current">
+                    <div class="round-details">
+                        @{
+                            string roundHeader = "Round " + (round + 1).ToString();
+                            @roundHeader <br />
+                            @*<span class="date">March 16</span>*@
+                        }
+                    </div>
+                    @{
+                        foreach (var match in this.Model.MatchScheme[round])
+                        {
+                            string player1 = "";
+                            string player2 = "";
+                            double? player1Score = null;
+                            double? player2Score = null;
+                            bool thisMatchHasScore = false;
+                            string action = "";
+                            string buttonText = "";
+
+                            player1 = match.Players[0].Name;
+                            player2 = match.Players[1].Name;
+
+                            if (Model.MatchScores.ContainsKey(match.MatchId))
+                            {
+                                player1Score = @Model.MatchScores[match.MatchId][0];
+                                player2Score = @Model.MatchScores[match.MatchId][1];
+                            }
+
+                            if (this.Model.MatchIDsWithScores.Contains(match.MatchId))
+                            {
+                                thisMatchHasScore = true;
+                                action = "ResetScore";
+                                buttonText = "Reset Score";
+                            }
+                            else
+                            {
+                                action = "Edit";
+                                buttonText = "Save Result";
+                            }
+
+                            <form asp-controller="Leagues" asp-action="@action" method="post">
+                                <input type="hidden" asp-for="@Model.MatchId" value="@match.MatchId" />
+                                <input type="hidden" asp-for="@Model.EventId" value="@Model.EventId" />
+                                <ul class="matchup">
+                                    <li class="team team-top">
+                                        @player1
+                                        @if (thisMatchHasScore)
+                                        {
+                                            <input class="scoreinput score" type="text" asp-for="@Model.Player1Score" value="@player1Score" disabled>
+                                        }
+                                        else
+                                        {
+                                            <input class="scoreinput score" type="text" asp-for="@Model.Player1Score" value="@player1Score">
+                                        }
+
+                                    </li>
+                                    <li class="team team-bottom">
+                                        @player2
+                                        @if (thisMatchHasScore)
+                                        {
+                                            <input class="scoreinput score" type="text" asp-for="@Model.Player2Score" value="@player2Score" disabled>
+                                        }
+                                        else
+                                        {
+                                            <input class="scoreinput score" type="text" asp-for="@Model.Player2Score" value="@player2Score">
+                                        }
+                                    </li>
+                                    <li style="background: none">
+                                        <input class="btn btn-primary mt-2" type="submit" value="@buttonText" />
+                                    </li>
+                                </ul>
+                            </form>
+                        }
+                    }
+                </div>
+            }
+        </div>
+    </div>
+    
+    <form asp-controller="Events" asp-action="Edit" method="get">
+        <input type="hidden" asp-for="EventId" value="@this.Model.EventId" />
+        <input type="submit" value="Back to Event" class="btn btn-primary fa-lg gradient-custom-2 ml-4" />
+    </form>
+</section>
+

@@ -1,0 +1,63 @@
+﻿@model IEnumerable<MatchScore.Data.Models.Event>
+@*@model  IEnumerable<MatchScore.Web.ViewModels.EventViewModels.EventEditVM>*@
+<link href="~/css/style.css" rel="stylesheet" />
+
+<div class="table">
+    <div class="header">
+        <div class="header-cell">Event Title</div>
+        <div class="header-cell">Event Type</div>
+        <div class="header-cell">Start Date</div>
+        <div class="header-cell">End Date</div>
+        <div class="header-cell">Team Event</div>
+        <div class="header-cell">City</div>
+        <div class="header-cell">Country</div>
+        <div class="header-cell">Champion</div>
+        <div class="header-cell">Status</div>
+        <div class="header-cell">Actions</div>
+    </div>
+
+    @foreach (var ev in this.Model)
+    {
+        <div class="row">
+            <div class="cell">@ev.Title</div>
+            <div class="cell">@ev.EventType.ToString()</div>
+            <div class="cell">@ev.StartDate</div>
+            <div class="cell">@ev.EndDate</div>
+            @{
+                if (@ev.IsTeamEvent)
+                {
+                    <div class="cell">Team Competion</div>
+                }
+                else
+                {
+                    <div class="cell">Individual Competion</div>
+                }
+            }
+            <div class="cell">@ev.Location.City</div>
+            <div class="cell">@ev.Location.Country</div>
+            @{
+                if (@ev.Champion != null)
+                {
+                    <div class="cell">@ev.Champion.Name</div>
+                }
+                else
+                {
+                    <div class="cell">Not Determined Yet</div>
+                }
+                if (@ev.IsCompleted)
+                {
+                    <div class="cell">Completed</div>
+                }
+                else
+                {
+                    <div class="cell">Ongoing</div>
+                }
+            }
+            <div class="cell">
+                <a asp-controller="Events" asp-action="Details" asp-route-eventId="@ev.EventId" class="nav">Details</a>
+                <a asp-controller="Events" asp-action="Edit" asp-route-eventId="@ev.EventId" class="nav">Edit</a>
+                <a asp-controller="Events" asp-action="Delete" asp-route-eventId="@ev.EventId" class="nav">Delete</a>
+            </div>
+        </div>
+     }
+</div>

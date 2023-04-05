@@ -1,0 +1,143 @@
+﻿@model PlayersIndexVM
+
+@{
+    this.ViewData["Title"] = "Players Index";
+    this.ViewData["PlayersActive"] = "active";
+}
+
+@* Hero *@
+<div class="sm-hero">
+    <div class="hero overlay">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-5 ml-auto">
+                    <h1 class="text-white">Players</h1>
+                    <p>Your personal meet and greet with all of our players.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*Search Box:*@
+<div class="search-create-menu">
+    <form asp-controller="Players" asp-action="Index" method="get">
+        <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                Search
+            </button>
+            <menu class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+
+                <li>
+                    Sort By:<br />
+                    <input type="radio" name="SortBy" value="name">
+                    <label>Name</label><br />
+                    <input type="radio" name="SortBy" value="matches">
+                    <label>Matches Played</label><br />
+                    <input type="radio" name="SortBy" value="wins">
+                    <label>Wins</label><br />
+                </li>
+                <li>
+                    Sort Order:<br />
+                    <input type="radio" name="SortOrder" value="desc">
+                    <label>Descending</label>
+                </li>
+                <li>
+                    Active:<br />
+                    <input type="radio" name="Active" value="true">
+                    <label>True</label><br />
+                    <input type="radio" name="Active" value="false">
+                    <label>False</label><br />
+                </li>
+                <li>Name: <input class="text-input" type="text" name="Name" /></li>
+                <li>Club: <input class="text-input" type="text" name="SportsClub" /></li>
+                <li>
+                    Countries:
+                    <select name="Country" id="countries">
+                        <option value=""></option>
+                        @foreach (var country in Enum.GetValues(typeof(Countries)))
+                        {
+                            <option value="@country">@(((Countries)country).AsString(EnumFormat.Description))</option>
+                        }
+                    </select>
+                </li>
+                <li><input type="submit" value="Search" class="btn btn-primary" /></li>
+            </menu>
+        </div>
+    </form>
+
+    <a asp-controller="Players" asp-action="Create" class="btn btn-primary">Create</a>
+</div>
+
+@* Players Cards *@
+
+@if (this.Model.Players.Count == 0)
+{
+    <div class="text-center">
+        <h1>No players match the conditions!</h1>
+    </div>
+}
+else
+{
+    <div class="grid-player">
+        @foreach (var player in this.Model.Players)
+        {
+            <div class="col" style="width:250px; height:300px;">
+                <div class="card h-100 flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            @if (player.Photo.Length < 1)
+                            {
+                                <img src="~/images/anonymous.jpg" alt="Avatar" class="card-img-top">
+                            }
+                            else
+                            {
+                                <img src="@String.Format(Messages.ImageSrc, Convert.ToBase64String(player.Photo))" alt="Avatar" class="card-img-top">
+                            }
+                            <p class="carousel-caption">@player.Name</p>
+                        </div>
+                        <div class="flip-card-back">
+                            <p class="card-text">
+                                <span>Country: </span>
+                                @if (player.Country == 0)
+                                {
+                                    <span>None</span>
+                                }
+                                else
+                                {
+                                    @(((Countries)player.Country).AsString(EnumFormat.Description))
+                                }
+                            </p>
+                            <p class="card-text">
+                                <span>Club: </span>
+                                @if (string.IsNullOrEmpty(player.SportsClubName))
+                                {
+                                    <span>None</span>
+                                }
+                                else
+                                {
+                                    <a asp-controller="SportsClubs" asp-action="Details" asp-route-id="@player.SportsClubId">@player.SportsClubName</a>
+                                }
+                            </p>
+                            <p class="card-text"><span>Status: </span>@{var status = player.IsInactive ? "Not Active" : "Active";}@status</p>
+                            <p class="card-text"><span>Matches Played: </span> @player.MatchesPlayed</p>
+                            <p class="card-text"><span>Matches Won: </span> @player.MatchesWon</p>
+                            <a asp-controller="Players" asp-action="Details" asp-route-id="@player.PlayerId" class="btn btn-primary">Profile</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@*Buttons for pagination*@
+@{
+    string prevButtonState = !this.Model.HasPrevPage ? "disabled" : "";
+    string nextButtonState = !this.Model.HasNextPage ? "disabled" : "";
+}
+
+<div class="btn-pagination text-center">
+    <a asp-controller="Players" asp-action="Index" asp-route-CurrentPage="@(this.Model.CurrentPage - 1)" class="btn btn-primary @prevButtonState">Prev</a>
+    <a asp-controller="Players" asp-action="Index" asp-route-CurrentPage="@(this.Model.CurrentPage + 1)" class="btn btn-primary @nextButtonState">Next</a>
+</div>

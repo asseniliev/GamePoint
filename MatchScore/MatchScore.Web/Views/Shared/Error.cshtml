@@ -1,0 +1,20 @@
+﻿@{
+    this.ViewData["Title"] = "Error";
+    var code = this.Context.Response.StatusCode;
+    var codeMeaning = ((System.Net.HttpStatusCode)code).ToString();
+}
+
+<div class="sitesection-error">
+
+        <div class="error">
+            <video autoplay muted loop>
+                <source src="~/videos/distorted_screen.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">
+                <h1 >@code</h1>
+                <h3>@codeMeaning</h3>
+                <h5>@this.ViewData["ErrorMessage"]</h5>
+            </div>
+        </div>
+
+</div>

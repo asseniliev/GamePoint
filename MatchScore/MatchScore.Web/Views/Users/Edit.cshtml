@@ -1,0 +1,246 @@
+﻿@model UserProfileVM;
+
+@{
+    this.ViewData["Title"] = "User profile";
+    this.ViewData["EditActive"] = "active";
+    this.ViewData["PageTitle"] = "User profile";
+    this.ViewData["PageSubtitle"] = "Edit your user profile";
+}
+
+<div class="site-section">
+    <div class="edit-container p-5 bg-dark border-radius">
+        @*Director or Admin*@
+        @if (!Model.User.Role.Equals("User"))
+        {
+            <div class="m-3">
+                <div class="col-6 title-section">
+                    <h3 class="heading col-6 ">@Model.User.Role</h3>
+                </div>
+                <div class="form-group">
+                    <a class="btn btn-primary" asp-controller="Events" asp-action="Create">New event</a>
+                    <a class="btn btn-primary" asp-controller="Players" asp-action="Create">New player</a>
+                </div>
+            </div>
+            <div class="m-3">
+                <div class="col-6 title-section">
+                    <h3 class="heading col-6 ">Your events</h3>
+                </div>
+                @if (Model.Events.Count > 0)
+                {
+                    <div>
+                        <table class="table custom-table table-dark">
+                            @*Header cells*@
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">
+                                        <a class="text-white">Event Title</a>
+                                    </th>
+                                    <th scope="col">
+                                        <a class="text-white">Event Type</a>
+                                    </th>
+                                    <th scope="col">
+                                        <a class="text-white">Start Date</a>
+                                    </th>
+                                    <th scope="col">
+                                        <a class="text-white">End Date</a>
+                                    </th>
+                                    <th scope="col">
+                                        <a class="text-white">Competition</a>
+                                    </th>
+                                    <th scope="col">
+                                        <a class="text-white">City</a>
+                                    </th>
+                                    <th scope="col">
+                                        <a class="text-white">Country</a>
+                                    </th>
+                                    <th scope="col">
+                                        <a class="text-white">Champion</a>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (EventLongVM ev in Model.Events)
+                                {
+                                    <tr>
+                                        @{
+                                            var rowNumber = this.Model.Events.IndexOf(ev) + 1;
+                                        }
+                                        <th scope="row">@rowNumber</th>
+                                        <td>
+                                            <a class="table-text" asp-controller="Events" asp-action="Edit" asp-route-eventId="@ev.EventId">@ev.Title</a>
+                                        </td>
+                                        <td>
+                                            @if (ev.EventType.Equals(EventTypes.SingleMatch))
+                                            {
+                                                <div>Single match</div>
+                                            }
+                                            else
+                                            {
+                                                @ev.EventType.ToString()
+                                            }
+                                        </td>
+                                        <td>@ev.StartDate.ToString(Messages.ShortDateDisplay)</td>
+                                        <td>@ev.EndDate.ToString(Messages.ShortDateDisplay)</td>
+                                        <td>
+                                            @{
+                                                if (@ev.IsTeamEvent)
+                                                {
+                                                    <div>Team</div>
+                                                }
+                                                else
+                                                {
+                                                    <div>Individual</div>
+                                                }
+                                            }
+                                        </td>
+                                        <td>@ev.City</td>
+                                        <td>@ev.Country</td>
+                                        <td>
+                                            @{
+                                                if (@ev.Champion != null)
+                                                {
+                                                    <a class="table-text" asp-controller="Players" asp-action="Details" asp-route-id="@ev.ChampionId">@ev.Champion</a>
+                                                }
+                                                else
+                                                {
+                                                    <div class="badge badge-info">Ongoing</div>
+                                                }
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        }
+        @*User*@
+        else
+        {
+            RequestIndexVM promoteRequest = Model.Requests.FirstOrDefault(r => r.UserId == Model.User.UserId && r.RequestType.Equals(RequestTypes.Promote));
+
+            @*Promotion*@
+            <div class="m-3">
+                <div class="form-group">
+                    @if (promoteRequest != null)
+                    {
+                        if (promoteRequest.RequestStatus.Equals(RequestStatus.Waiting))
+                        {
+                            @*Promote request is waiting for approval*@
+                            <div class="col-6 title-section">
+                                <h3 class="heading">Promotion request is waiting for approval</h3>
+                            </div>
+                        }
+                        else if (promoteRequest.RequestStatus.Equals(RequestStatus.Declined))
+                        {
+                            @*Promote request is declined*@
+                            <div class="col-6 title-section">
+                                <h3 class="heading">Promotion request has been declined</h3>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        @*Send promote request*@
+                        <form class="form" asp-controller="Requests" asp-action="PromoteRequest" asp-route-userId="@Model.User.UserId" method="post">
+                            <input class="form-control" type="hidden" asp-for="@Model.User.UserId" value="@Model.User.UserId" />
+                            <div class="col-6 title-section">
+                                <h3 class="heading">Become a director</h3>
+                            </div>
+                            <div class="form-group">
+                                <input class="btn btn-primary" type="submit" value="Send request" />
+                            </div>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="m-3">
+            @*Association*@
+            @if (Model.User.PlayerId.HasValue)
+            {
+                @*Player is associated*@
+                <div class="col-6 title-section">
+                    <h3 class="heading">Associated player: <a asp-controller="Players" asp-action="Edit" asp-route-id="@Model.User.PlayerId">@Model.User.PlayerName</a></h3>
+                </div>
+            }
+            else
+            {
+                @*Player is not associated*@
+                RequestIndexVM associateRequest = Model.Requests.FirstOrDefault(r => r.UserId == Model.User.UserId && r.RequestType.Equals(RequestTypes.Associate));
+
+                if (associateRequest != null)
+                {
+                    if (associateRequest.RequestStatus.Equals(RequestStatus.Waiting))
+                    {
+                        @*Associate request is waiting for approval*@
+                        <div class="col-6 title-section">
+                            <h3 class="heading">Association request is waiting for approval</h3>
+                        </div>
+                    }
+                    else if (associateRequest.RequestStatus.Equals(RequestStatus.Declined))
+                    {
+                        @*Associate request is declined*@
+                        <div class="col-6 title-section">
+                            <h3 class="heading">Association request has been declined</h3>
+                        </div>
+                    }
+                }
+                else
+                {
+                    @*Send associate request*@
+                    <form asp-controller="Requests" asp-action="AssociateRequest" asp-route-userId="@Model.User.UserId" method="post">
+                        <div class="col-6 title-section">
+                            <h3 class="heading">Associate with player</h3>
+                        </div>
+                        <div class="form-group">
+                            <select class="custom-select" name="playerId">
+                                @foreach (var player in Model.Players)
+                                {
+                                    if (Model.Users.Where(u => u.PlayerId != null).FirstOrDefault(u => u.PlayerId == player.PlayerId) == null)
+                                    {
+                                        <option class="text-success" value="@player.PlayerId">@player.Name, @player.SportsClubName, @player.Country *FREE*</option>
+                                    }
+                                    else
+                                    {
+                                        <option class="text-danger" disabled value="@player.PlayerId">@player.Name, @player.SportsClubName, @player.Country *ASSOCIATED*</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input class="btn btn-primary" type="submit" value="Send request" />
+                        </div>
+                    </form>
+                }
+            }
+        </div>
+        <div class="m-3">
+            @*Change password*@
+            <form class="form" asp-controller="Users" asp-action="ChangePassword" method="post">
+                <input class="form-control" type="hidden" asp-for="User.UserId" value="@Model.User.UserId" />
+                <input class="form-control" type="hidden" asp-for="User.Username" value="@Model.User.Username" />
+                <div class="col-6 title-section">
+                    <h3 class="heading">Change password</h3>
+                </div>
+                <div class="form-group">
+                    <input class="form-control" asp-for="User.CurrentPassword" type="password" placeholder="Old password" required />
+                    <span type="hidden" asp-validation-for="User.CurrentPassword"></span>
+                </div>
+                <div class="form-group">
+                    <input class="form-control" asp-for="User.NewPassword" type="password" placeholder="New password" required />
+                </div>
+                <div class="form-group">
+                    <input class="form-control" asp-for="User.ConfirmNewPassword" type="password" placeholder="Confirm password" required />
+                    <span type="hidden" asp-validation-for="User.NewPassword"></span>
+                </div>
+                <div class="form-group">
+                    <input class="btn btn-primary" type="submit" value="Change password" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,214 @@
+﻿@model RequestListVM;
+
+@{
+    this.ViewData["Title"] = "All requests";
+    this.ViewData["RequestsActive"] = "active";
+    this.ViewData["PageTitle"] = "Requests";
+    this.ViewData["PageSubtitle"] = "List of all requests";
+}
+
+<div class="site-section">
+    <div class="container">
+        @*Search Box*@
+        <div class="search-create-menu">
+            <form asp-controller="Requests" asp-action="Index" method="get">
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                        Search
+                    </button>
+                    <menu class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                        <li><input class="text-input" type="hidden" name="SortBy" value="username" /></li>
+                        <li>User<input class="text-input" type="text" name="Username" /></li>
+                        <li><input type="submit" value="Search" class="btn btn-primary" /></li>
+                    </menu>
+                </div>
+            </form>
+        </div>
+        <table class="table custom-table table-dark">
+            @*Header cells*@
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">
+                        <a asp-controller="Requests"
+                           asp-action="Index"
+                           asp-route-SortBy="type"
+                           asp-route-SortOrder="@{
+                                                    if(this.ViewData.ContainsKey("SortBy"))
+                                                    {
+                                                        if(this.ViewData["SortBy"] != null)
+                                                        {
+                                                            if(this.ViewData["SortBy"].Equals("type"))
+                                                            {
+                                                                @this.ViewData["SortOrder"]
+                                                            }
+                                                        }
+                                                    }
+                                                }"
+                           asp-route-PaginationSortOrder="@this.ViewData["SortOrder"]"
+                           asp-route-IsHeader="true"
+                           class="text-white">Type</a>
+                    </th>
+                    <th scope="col">
+                        <a asp-controller="Requests"
+                           asp-action="Index"
+                           asp-route-SortBy="username"
+                           asp-route-SortOrder="@{
+                                                    if(this.ViewData.ContainsKey("SortBy"))
+                                                    {
+                                                        if(this.ViewData["SortBy"] != null)
+                                                        {
+                                                            if(this.ViewData["SortBy"].Equals("username"))
+                                                            {
+                                                                @this.ViewData["SortOrder"]
+                                                            }
+                                                        }
+                                                    }
+                                                }"
+                           asp-route-PaginationSortOrder="@this.ViewData["SortOrder"]"
+                           asp-route-IsHeader="true"
+                           class="text-white">User</a>
+                    </th>
+                    <th scope="col">
+                        <a asp-controller="Requests"
+                           asp-action="Index"
+                           asp-route-SortBy="player"
+                           asp-route-SortOrder="@{
+                                                    if(this.ViewData.ContainsKey("SortBy"))
+                                                    {
+                                                        if(this.ViewData["SortBy"] != null)
+                                                        {
+                                                            if(this.ViewData["SortBy"].Equals("player"))
+                                                            {
+                                                                @this.ViewData["SortOrder"]
+                                                            }
+                                                        }
+                                                    }
+                                                }"
+                           asp-route-PaginationSortOrder="@this.ViewData["SortOrder"]"
+                           asp-route-IsHeader="true"
+                           class="text-white">Player</a>
+                    </th>
+                    <th scope="col">
+                        <a asp-controller="Requests"
+                           asp-action="Index"
+                           asp-route-SortBy="status"
+                           asp-route-SortOrder="@{
+                                                    if(this.ViewData.ContainsKey("SortBy"))
+                                                    {
+                                                        if(this.ViewData["SortBy"] != null)
+                                                        {
+                                                            if(this.ViewData["SortBy"].Equals("status"))
+                                                            {
+                                                                @this.ViewData["SortOrder"]
+                                                            }
+                                                        }
+                                                    }
+                                                }"
+                           asp-route-PaginationSortOrder="@this.ViewData["SortOrder"]"
+                           asp-route-IsHeader="true"
+                           class="text-white">Status</a>
+                    </th>
+                    <th scope="col">
+                        <a asp-controller="Requests"
+                           asp-action="Index"
+                           asp-route-SortBy="created"
+                           asp-route-SortOrder="@{
+                                                    if(this.ViewData.ContainsKey("SortBy"))
+                                                    {
+                                                        if(this.ViewData["SortBy"] != null)
+                                                        {
+                                                            if(this.ViewData["SortBy"].Equals("created"))
+                                                            {
+                                                                @this.ViewData["SortOrder"]
+                                                            }
+                                                        }
+                                                    }
+                                                }"
+                           asp-route-PaginationSortOrder="@this.ViewData["SortOrder"]"
+                           asp-route-IsHeader="true"
+                           class="text-white">Submit date</a>
+                    </th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (RequestIndexVM request in Model.Requests)
+                {
+                    <tr>
+                        @{
+                            var rowNumber = this.Model.Requests.IndexOf(request) + 1;
+                        }
+
+                        <td scope="row">@rowNumber</td>
+                        <td>
+                            @request.RequestType
+                        </td>
+                        <td>
+                            <a class="table-text" asp-controller="Users" asp-action="Details" asp-route-userId="@request.UserId">@request.Username</a>
+                        </td>
+                        <td>
+                            @if (request.PlayerName != null)
+                            {
+                                <div>
+                                    <a class="table-text" asp-controller="Players" asp-action="Details" asp-route-id="@request.PlayerId">@request.PlayerName</a>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="badge badge-info">***Promotion request***</div>
+                            }
+                        </td>
+                        <td>
+                            @if(request.RequestStatus.Equals(RequestStatus.Waiting))
+                            {
+                                <div class="badge badge-info">@request.RequestStatus</div>
+                            }
+                            else if(@request.RequestStatus.Equals(RequestStatus.Cancelled))
+                            {
+                                <div class="badge badge-warning">@request.RequestStatus</div>
+                            }
+                            else if(@request.RequestStatus.Equals(RequestStatus.Approved))
+                            {
+                                <div class="badge badge-success">@request.RequestStatus</div>
+                            }
+                            else if(@request.RequestStatus.Equals(RequestStatus.Declined))
+                            {
+                                <div class="badge badge-warning">@request.RequestStatus</div>
+                            }
+                        </td>
+                        <td>
+                            @request.CreatedOn
+                        </td>
+                        @if (request.RequestStatus.Equals(RequestStatus.Waiting))
+                        {
+                            <td>
+                                @*Process request*@
+                                <a class="btn btn-success btn-sm" asp-controller="Requests" asp-action="ProcessRequest" asp-route-requestId="@request.RequestId" asp-route-requestStatus="@RequestStatus.Approved" asp-route-sortBy="created">Approve</a>
+
+                                <a class="btn btn-warning btn-sm" asp-controller="Requests" asp-action="ProcessRequest" asp-route-requestId="@request.RequestId" asp-route-requestStatus="@RequestStatus.Declined" asp-route-sortBy="created">Decline</a>
+
+                            </td>
+                        }
+                        else
+                        {
+                            <td>
+                                <div class="badge badge-info">This request has final status</div>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+@*Pagination buttons*@
+@{
+    string prevButtonState = !this.Model.HasPrevPage ? "disabled" : "";
+    string nextButtonState = !this.Model.HasNextPage ? "disabled" : "";
+}
+
+<div class="btn-pagination text-center">
+    <a class="btn btn-primary @prevButtonState" asp-controller="Requests" asp-action="Index" asp-route-SortBy="@this.ViewData["SortBy"]" asp-route-SortOrder="@this.ViewData["PaginationSortOrder"]" asp-route-PaginationSortOrder="@this.ViewData["PaginationSortOrder"]" asp-route-CurrentPage="@(this.Model.CurrentPage - 1)">Prev</a>
+    <a class="btn btn-primary @nextButtonState" asp-controller="Requests" asp-action="Index" asp-route-SortBy="@this.ViewData["SortBy"]" asp-route-SortOrder="@this.ViewData["PaginationSortOrder"]" asp-route-PaginationSortOrder="@this.ViewData["PaginationSortOrder"]" asp-route-CurrentPage="@(this.Model.CurrentPage + 1)">Next</a>
+</div>

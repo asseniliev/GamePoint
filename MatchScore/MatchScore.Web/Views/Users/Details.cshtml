@@ -1,0 +1,116 @@
+﻿@model UserDetailsVM;
+
+@{
+    this.ViewData["Title"] = "User details";
+}
+
+<div class="site-section">
+    <div class="container flex-column bg-dark border-radius">
+        <div>
+            <h1 class="text-white">@Model.Username</h1>
+            <h3 class="text-white">@Model.Role</h3>
+            @if (Model.IsInactive)
+            {
+                <p class="badge badge-warning">Inactive</p>
+            }
+            else
+            {
+                <p class="badge badge-info">Active</p>
+            }
+            <p class="table-text red">@Model.Email</p>
+            <p class="text-white">@Model.CreatedOn</p>
+            <p class="text-white">@Model.PlayerName</p>
+        </div>
+        <div>
+            @if (Model.Events.Count > 0)
+            {
+                <div>
+                    <table class="table custom-table table-dark">
+                        @*Header cells*@
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">
+                                    <a class="text-white">Event Title</a>
+                                </th>
+                                <th scope="col">
+                                    <a class="text-white">Event Type</a>
+                                </th>
+                                <th scope="col">
+                                    <a class="text-white">Start Date</a>
+                                </th>
+                                <th scope="col">
+                                    <a class="text-white">End Date</a>
+                                </th>
+                                <th scope="col">
+                                    <a class="text-white">Competition</a>
+                                </th>
+                                <th scope="col">
+                                    <a class="text-white">City</a>
+                                </th>
+                                <th scope="col">
+                                    <a class="text-white">Country</a>
+                                </th>
+                                <th scope="col">
+                                    <a class="text-white">Champion</a>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (EventLongVM ev in Model.Events)
+                            {
+                                <tr>
+                                    @{
+                                        var rowNumber = this.Model.Events.IndexOf(ev) + 1;
+                                    }
+                                    <th scope="row">@rowNumber</th>
+                                    <td>
+                                        <a class="table-text" asp-controller="Events" asp-action="Edit" asp-route-eventId="@ev.EventId">@ev.Title</a>
+                                    </td>
+                                    <td>
+                                        @if (ev.EventType.Equals(EventTypes.SingleMatch))
+                                        {
+                                            <div>Single match</div>
+                                        }
+                                        else
+                                        {
+                                            @ev.EventType.ToString()
+                                        }
+                                    </td>
+                                    <td>@ev.StartDate.ToString(Messages.ShortDateDisplay)</td>
+                                    <td>@ev.EndDate.ToString(Messages.ShortDateDisplay)</td>
+                                    <td>
+                                        @{
+                                            if (@ev.IsTeamEvent)
+                                            {
+                                                <div>Team</div>
+                                            }
+                                            else
+                                            {
+                                                <div>Individual</div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>@ev.City</td>
+                                    <td>@ev.Country</td>
+                                    <td>
+                                        @{
+                                            if (@ev.Champion != null)
+                                            {
+                                                <a class="table-text" asp-controller="Players" asp-action="Details" asp-route-id="@ev.ChampionId">@ev.Champion</a>
+                                            }
+                                            else
+                                            {
+                                                <div class="badge badge-info">Ongoing</div>
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

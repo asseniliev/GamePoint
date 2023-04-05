@@ -1,0 +1,395 @@
+﻿@model HomeIndexVM
+
+@{
+    this.ViewData["Title"] = "Home";
+    this.ViewData["HomeActive"] = "active";
+    var nextMatch = this.Model.FutureMatches.FirstOrDefault();
+    var date = DateTime.MinValue.ToString("yyyy/MM/dd");
+    if (nextMatch != null)
+    {
+        date = nextMatch.Date.ToString("yyyy/MM/dd");
+    }
+}
+
+@* Hero *@
+<div class="lg-hero">
+    <div class="hero overlay">
+        <video id="bg-video" autoplay muted loop poster="~/images/video_bg_img.png">
+            <source src="~/videos/hero_bg.mp4" type="video/mp4" />
+        </video>
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 ml-auto">
+                    <h1 class="text-white">Gaming Competitions</h1>
+                    <p>You play matches and organize tournaments.<br /> We bring the gaming world together.</p>
+                    <h3>Next match in:</h3>
+                    @if (nextMatch == null)
+                    {
+                        <p>There are no planned matches. Create one:</p>
+                        <a asp-controller="Events" asp-action="Create" class="btn btn-primary py-3 px-4 mr-3">Create Event</a>
+                    }
+                    else
+                    {
+                        <h2 id="clock"></h2>
+                        <p>
+                            <a asp-controller="Matches" asp-action="Details" asp-route-id="@nextMatch.MatchId" class="btn btn-primary py-3 px-4 mr-3">Match Info</a>
+                            <a asp-controller="Events" asp-action="Details" asp-route-eventId="@nextMatch.EventId" class="more light">Event Info</a>
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Next match *@
+@if (nextMatch != null)
+    {
+
+<div class="bg-home-black">
+    <div >
+
+        <div class="row mr-0 ml-0">
+            <div class="col-lg-12">
+
+                <div class="d-flex team-vs mr-5 ml-5">
+                    <span class="score">VS</span>
+                    <div class="team-1 w-50">
+                        <div>
+                            @if (nextMatch.Players[0].Photo.Length < 1)
+                            {
+                                <img src="~/images/anonymous.jpg" alt="Avatar" class="player-img">
+                            }
+                            else
+                            {
+                                <img src="@String.Format(Messages.ImageSrc, Convert.ToBase64String(nextMatch.Players[0].Photo))" alt="Avatar" class="player-img">
+                            }
+                        </div>
+                        <div class="team-details w-100 text-center">
+                            <h3><a asp-controller="Players" asp-action="Details" asp-route-id="@nextMatch.Players[0].PlayerId">@nextMatch.Players[0].Name</a></h3>
+                            <ul class="list-unstyled">
+                                <li>@(((Countries)nextMatch.Players[0].Country).AsString(EnumFormat.Description))</li>
+                                <li>@nextMatch.Players[0].SportsClubName</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="team-2 w-50">
+                        <div class="team-details w-100 text-center">
+                            <h3><a asp-controller="Players" asp-action="Details" asp-route-id="@nextMatch.Players[1].PlayerId">@nextMatch.Players[1].Name</a></h3>
+                            <ul class="list-unstyled">
+                                <li>@(((Countries)nextMatch.Players[1].Country).AsString(EnumFormat.Description))</li>
+                                <li>@nextMatch.Players[1].SportsClubName</li>
+                            </ul>
+                        </div>
+                        <div>
+                            @if (nextMatch.Players[1].Photo.Length < 1)
+                            {
+                                <img src="~/images/anonymous.jpg" alt="Avatar" class="player-img">
+                            }
+                            else
+                            {
+                                <img src="@String.Format(Messages.ImageSrc, Convert.ToBase64String(nextMatch.Players[1].Photo))" alt="Avatar" class="player-img">
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    }
+
+@* Latest Events *@
+<div class="pr-5 pl-5 pb-5 index-events bg-transparent-index">
+
+    <h1 class="text-white" style="font-weight: 700">Latest</h1>
+    <p >Find the results from the latest tournaments and matches.</p>
+
+    <div class="row">
+
+
+        <div class="col">
+            <h2 class="text-center">Events</h2>
+            <table class="table custom-table table-dark">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Event</th>
+                        <th>Type</th>
+                        <th>Champion</th>
+                        <th>Finish Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (this.Model.LatestEvents.Count == 0)
+                    {
+                        <tr><td colspan="5" align="center">No past events</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var eventModel in this.Model.LatestEvents)
+                        {
+                            <tr>
+                                @{var row = this.Model.LatestEvents.IndexOf(eventModel) + 1;}
+                                <th>@row</th>
+                                <td><a class="table-text" asp-controller="Events" asp-action="Details" asp-route-eventId="@eventModel.EventId">@eventModel.Title</a></td>
+                                @if (eventModel.EventType == EventTypes.SingleMatch)
+                                {
+                                    <td>Single match</td>
+                                }
+                                else
+                                {
+                                    <td>@eventModel.EventType</td>
+                                }
+                                @if (eventModel.ChampionId == null)
+                                {
+                                    <td>Ongoing event</td>
+                                }
+                                else
+                                {
+                                    <td><a class="table-text" asp-controller="Players" asp-action="Details" asp-route-id="@eventModel.ChampionId">@eventModel.ChampionName</a></td>
+                                }
+                                <td>@eventModel.EndDate.ToString(Messages.ShortDateDisplay)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col">
+            <h2 class="text-center">Matches</h2>
+            <table class="table custom-table table-dark">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Winner</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Event</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (this.Model.LatestMatches.Count == 0)
+                    {
+                        <tr><td colspan="6" align="center">No past matches</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var match in this.Model.LatestMatches)
+                        {
+                            <tr>
+                                @{var row = this.Model.LatestMatches.IndexOf(match) + 1;}
+                                <th>@row</th>
+                                @if (match.WinnerName == "")
+                                {
+                                    <td>Ongoing</td>
+                                }
+                                else if (match.WinnerName == "tie")
+                                {
+                                    <td>TIE</td>
+                                }
+                                else
+                                {
+                                    <td><a class="table-text" asp-controller="Players" asp-action="Details" asp-route-id="@match.WinnerId">@match.WinnerName</a></td>
+                                }
+                                <td>@match.Date.ToString(Messages.ShortDateDisplay)</td>
+                                <td>@match.LocationCity, @(((Countries)match.LocationCountry).AsString(EnumFormat.Description))</td>
+                                <td><a class="table-text" asp-controller="Events" asp-action="Details" asp-route-eventId="@match.EventId">@match.EventTitle</a></td>
+                                <td><a class="btn btn-warning btn-sm" asp-controller="Matches" asp-action="Details" asp-route-id="@match.MatchId">Details</a></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+
+@* Player ranklist*@
+<div class="ranklist">
+
+    <div class="d-flex flex-column align-items-end title-ranklist">
+        <h1 class="text-white float-right">Ranklist</h1>
+        <p class="float-right">Our top 10 players with the most wins under their belt.</p>
+    </div>
+
+    <div class="scrolling-wrapper">
+        @foreach (var player in this.Model.PlayerRanklist)
+        {
+            <div>
+                <div class="card-ranklist" style="width:220px; height:300px;">
+                    <div class="card h-100 flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                @if (player.Photo.Length < 1)
+                                {
+                                    <img src="~/images/anonymous.jpg" alt="Avatar" class="card-img-top">
+                                }
+                                else
+                                {
+                                    <img src="@String.Format(Messages.ImageSrc, Convert.ToBase64String(player.Photo))" alt="Avatar" class="card-img-top">
+                                }
+                                <p class="carousel-caption">@player.Name</p>
+                            </div>
+                            <div class="flip-card-back">
+                                <p class="card-text">
+                                    <span>Country: </span>
+                                    @if (player.Country == 0)
+                                    {
+                                        <span>None</span>
+                                    }
+                                    else
+                                    {
+                                        @(((Countries)player.Country).AsString(EnumFormat.Description))
+                                    }
+                                </p>
+                                <p class="card-text">
+                                    <span>Club: </span>
+                                    @if (string.IsNullOrEmpty(player.SportsClubName))
+                                    {
+                                        <span>None</span>
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="SportsClubs" asp-action="Details" asp-route-id="@player.SportsClubId">@player.SportsClubName</a>
+                                    }
+                                </p>
+                                <p class="card-text"><span>Status: </span>@{var status = player.IsInactive ? "Not Active" : "Active";}@status</p>
+                                <p class="card-text"><span>Matches Played: </span> @player.MatchesPlayed</p>
+                                <p class="card-text"><span>Matches Won: </span> @player.MatchesWon</p>
+                                <a asp-controller="Players" asp-action="Details" asp-route-id="@player.PlayerId" class="btn btn-primary">Profile</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <h2 class="text-center">@(this.Model.PlayerRanklist.IndexOf(player) + 1)</h2>
+            </div>
+        }
+    </div>
+</div>
+
+@* Next events *@
+<div class="pr-5 pl-5 index-events" id="next-matches">
+    <h1 class="text-white" style="font-weight: 700">Next</h1>
+    <p>Go ahead and check out the next tournaments and matches.</p>
+    <div class="row">
+
+        <div class="col">
+            <h2 class="text-center">Events</h2>
+            <table class="table custom-table table-dark">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Event</th>
+                        <th>Type</th>
+                        <th>Start Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (this.Model.FutureEvents.Count == 0)
+                    {
+                        <tr><td colspan="4" align="center">No events yet</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var eventModel in this.Model.FutureEvents)
+                        {
+                            <tr>
+                                @{var row = this.Model.FutureEvents.IndexOf(eventModel) + 1;}
+                                <th>@row</th>
+                                <td><a class="table-text" asp-controller="Events" asp-action="Details" asp-route-eventId="@eventModel.EventId">@eventModel.Title</a></td>
+                                @if (eventModel.EventType == EventTypes.SingleMatch)
+                                {
+                                    <td>Single match</td>
+                                }
+                                else
+                                {
+                                    <td>@eventModel.EventType</td>
+                                }
+                                <td>@eventModel.StartDate.ToString(Messages.ShortDateDisplay)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col">
+            <h2 class="text-center">Matches</h2>
+            <table class="table custom-table table-dark">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Event</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (this.Model.FutureMatches.Count == 0)
+                    {
+                        <tr><td colspan="5" align="center">No matches yet</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var match in this.Model.FutureMatches)
+                        {
+                            <tr>
+                                @{var row = this.Model.FutureMatches.IndexOf(match) + 1;}
+                                <th>@row</th>
+                                <td>@match.Date.ToString(Messages.ShortDateDisplay)</td>
+                                <td>@match.LocationCity, @(((Countries)match.LocationCountry).AsString(EnumFormat.Description))</td>
+                                <td><a class="table-text" asp-controller="Events" asp-action="Details" asp-route-eventId="@match.EventId">@match.EventTitle</a></td>
+                                <td><a class="btn btn-warning btn-sm" asp-controller="Matches" asp-action="Details" asp-route-id="@match.MatchId">Details</a></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+
+
+<script>
+
+// Set the date we're counting down to
+
+var countDownDate = new Date("@date").getTime();
+
+// Update the count down every 1 second
+
+var x = setInterval(function () {
+
+    // Get today's date and time
+    var now = new Date().getTime();
+
+    // Find the distance between now and the count down date
+    var distance = countDownDate - now;
+
+    // Time calculations for days, hours, minutes and seconds
+    var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    // Display the result in the element with id="demo"
+    document.getElementById("clock").innerHTML = days + "d " + hours + "h "
+        + minutes + "m " + seconds + "s ";
+
+    // If the count down is finished, write some text
+    if (distance < 0) {
+        clearInterval(x);
+        document.getElementById("clock").innerHTML = "Refresh to get next countdown!";
+    }
+}, 1000);
+
+</script>

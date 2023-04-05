@@ -1,0 +1,326 @@
+﻿@model PlayerDetailsVM
+
+@{
+    this.ViewData["Title"] = "Player Details";
+    this.ViewData["PlayersActive"] = "active";
+    var most = this.Model.MostPlayedOpponent;
+    var best = this.Model.BestOpponent;
+    var worst = this.Model.WorstOpponent;
+    var opponents = new PlayerShortVM[] { most, best, worst };
+    var opponentTitles = new string[] { "Most played", "Most wins against", "Most losses against" };
+    var opponentErrors = new string[] { "No matches played", "No wins", "No losses" };
+}
+
+@* Hero *@
+<div class="sm-hero">
+    <div class="hero overlay">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-5 ml-auto">
+                    <h1 class="text-white">@this.Model.Name</h1>
+                    <p>Check out your favorite player's info and stats.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Photo and info *@
+<div class="player-section bg-dark-transparent">
+    <div class="container container-details ">
+        <div class="row">
+            <div class="col text-center">
+                <div class="avatar translate-middle">
+                    @if (this.Model.Photo.Length > 0)
+                    {
+                        <img src="@String.Format(Messages.ImageSrc,Convert.ToBase64String(this.Model.Photo))" alt="Photo of @this.Model.Name" title="Photo of @this.Model.Name" class="img-fluid" />
+                    }
+                    else
+                    {
+                        <img src="~/images/anonymous.jpg" alt="Photo of @this.Model.Name" title="Photo of @this.Model.Name" />
+                    }
+                </div>
+                <div>
+                    <a asp-controller="Players" asp-action="Edit" asp-route-id="@this.Model.PlayerId" class="btn btn-primary">Edit</a>
+                    <a asp-controller="Players" asp-action="Delete" asp-route-id="@this.Model.PlayerId" class="btn btn-primary">Delete</a>
+                </div>
+            </div>
+            <div class="col text-center">
+                <div class="bg-stats">
+                    @if (this.Model.IsTeam)
+                    {
+                        <p>Sports Team</p>
+                    }
+                    else
+                    {
+                        <p>Individual athlete</p>
+                    }
+
+                    @if (this.Model.IsInactive)
+                    {
+                        <p>Status: <br /> <span>Not Active</span></p>
+                    }
+                    else
+                    {
+                        <p>Status: <br /> <span>Active</span></p>
+                    }
+
+                    <p>
+                        Country: <br />
+
+                        @if (this.Model.Country == null)
+                        {
+                            <span>None</span>
+                        }
+                        else
+                        {
+                            <span>@this.Model.Country</span>
+                        }
+                    </p>
+
+                    <p>
+                        Club: <br />
+                        @if (string.IsNullOrEmpty(this.Model.SportsClubName))
+                        {
+                            <span>None</span>
+                        }
+                        else
+                        {
+                            <span><a asp-controller="SportsClubs" asp-action="Details" asp-route-id="@this.Model.SportsClubId">@this.Model.SportsClubName</a></span>                           
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Tables *@
+
+<div class="player-section bgr-img">
+    <h1 class="text-white">Competitions</h1>
+    <p>Future, current and past events @this.Model.Name has participated in.</p>
+
+    <div class="gap"></div>
+    <div class="container">
+        <div class="row">
+
+            <div class="col">
+                <h1 class="text-center">Events</h1>
+                <table class="table custom-table table-dark">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Event</th>
+                            <th>Type</th>
+                            <th>Champion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (this.Model.Events.Count == 0)
+                        {
+                            <tr><td colspan="4" align="center">No events yet</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var eventModel in this.Model.Events)
+                            {
+                                <tr>
+                                    @{var row = this.Model.Events.IndexOf(eventModel) + 1;}
+                                    <td>@row</td>
+                                    <td><a class="table-text" asp-controller="Events" asp-action="Details" asp-route-eventId="@eventModel.EventId">@eventModel.Title</a></td>
+                                    @if (eventModel.EventType == EventTypes.SingleMatch)
+                                    {
+                                        <td>Single match</td>
+                                    }
+                                    else
+                                    {
+                                        <td>@eventModel.EventType</td>
+                                    }
+                                    @if (eventModel.ChampionId == null)
+                                    {
+                                        <td>Ongoing event</td>
+                                    }
+                                    else
+                                    {
+                                        <td><a asp-controller="Players" asp-action="Details" asp-route-id="@eventModel.ChampionId">@eventModel.ChampionName</a></td>
+                                    }
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="col">
+                <h1 class="text-center">Matches</h1>
+                <table class="table custom-table table-dark">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Location</th>
+                            <th>Winner</th>
+                            <th>Event</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (this.Model.Matches.Count == 0)
+                        {
+                            <tr><td colspan="5" align="center">No matches yet</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var match in this.Model.Matches)
+                            {
+                                <tr>
+                                    @{var row = this.Model.Matches.IndexOf(match) + 1;}
+                                    <td>@row</td>
+                                    <td>@match.Date.ToString(Messages.ShortDateDisplay)</td>
+                                    <td>@match.LocationCity, @(((Countries)match.LocationCountry).AsString(EnumFormat.Description))</td>
+                                    @if (match.WinnerName == "")
+                                    {
+                                        <td>Ongoing</td>
+                                    }
+                                    else if (match.WinnerName == "tie")
+                                    {
+                                        <td>TIE</td>
+                                    }
+                                    else
+                                    {
+                                        <td><a class="table-text" asp-controller="Players" asp-action="Details" asp-route-id="@match.WinnerId">@match.WinnerName</a></td>
+                                    }
+                                    <td><a class="table-text" asp-controller="Events" asp-action="Details" asp-route-eventId="@match.EventId">@match.EventTitle</a></td>
+                                    <td><a class="btn btn-warning btn-sm" asp-controller="Matches" asp-action="Details" asp-route-id="@match.MatchId">Details</a></td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@* Statistics *@
+
+<div class="player-section bg-dark-top">
+    <div class="d-flex align-items-end">
+        <h1 class="text-white float-right">Statistics</h1>
+        <p class="float-right">Defeats and successes, we keep track of it all. Check below for accurate stats.</p>
+    </div>
+
+    @if ((Model.Wins + Model.Losses + Model.Draws) == 0)
+    {
+        <p class="text-center" style="color: white; font-size: 1.2rem; margin: 4rem">No matches have been played yet!</p>
+    }
+    else
+    {  
+        @* Donut chart *@
+
+        <div class="container">
+            <div class="chart-container">
+
+            <h2>Match chart</h2>
+            <div id="donutchart"></div>
+            </div>
+
+        @* Opponents *@
+
+            <h2 style="text-align: right;">Opponents </h2>
+
+            <div class="row">
+
+                @for (int i = 0; i < opponents.Length; i++)
+                {
+                    var player = opponents[i];
+                    <div class="col text-center">
+                        <h4>@opponentTitles[i]</h4>
+
+                        <center>
+                            <div class="col" style="width:250px; height:300px;">
+                                <div class="card h-100 flip-card">
+                                @if (player == null)
+                                {
+                                    <p class="opponent-card">@opponentErrors[i]</p>
+                                }
+                                else
+                                {
+                                    <div class="flip-card-inner">
+                                        <div class="flip-card-front">
+                                            @if (player.Photo.Length < 1)
+                                            {
+                                                <img src="~/images/anonymous.jpg" alt="Avatar" class="card-img-top">
+                                            }
+                                            else
+                                            {
+                                                <img src="@String.Format(Messages.ImageSrc, Convert.ToBase64String(player.Photo))" alt="Avatar" class="card-img-top">
+                                            }
+                                            <p class="carousel-caption">@player.Name</p>
+                                        </div>
+                                        <div class="flip-card-back">
+                                            <p class="card-text"><span>Country: </span>@(((Countries)player.Country).AsString(EnumFormat.Description))</p>
+                                            <p class="card-text"><span>Club: </span><a asp-controller="SportsClubs" asp-action="Details" asp-route-id="@player.SportsClubId">@player.SportsClubName</a></p>
+                                            <p class="card-text"><span>Status: </span>@{var statusB = player.IsInactive ? "Not Active" : "Active";}@statusB</p>
+                                            <p class="card-text"><span>Matches Played: </span> @player.MatchesPlayed</p>
+                                            <p class="card-text"><span>Matches Won: </span> @player.MatchesWon</p>
+                                            <a asp-controller="Players" asp-action="Details" asp-route-id="@player.PlayerId" class="btn btn-primary">Profile</a>
+                                        </div>
+                                    </div>
+                                }
+                                </div>
+                            </div>
+                        </center>
+                    </div>
+                }
+
+            </div>
+        </div>
+    }
+
+</div>
+
+
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+    google.charts.load("current", { packages: ["corechart"] });
+    google.charts.setOnLoadCallback(drawChart);
+    function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+            ['Matches', '#'],
+            ['Wins', @this.Model.Wins],
+            ['Draws', @this.Model.Draws],
+            ['Losses', @this.Model.Losses]
+        ]);
+
+        var options = {
+            pieHole: 0.8,
+            backgroundColor: {
+                fill: 'transparent'
+            },
+            chartArea: {
+                left: 0,
+                top: 60,
+                width: '100%'
+            },
+            fontSize: 18,
+            fontName: 'Montserrat',
+            legend: {
+                position: 'right',
+                textStyle: {
+                    color: 'white',
+                    fontSize: 20,
+                }
+
+            },
+            sliceVisibilityThreshold: 0,
+            colors: ['#fe4c5a', '#5e1581', '#230859']
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('donutchart'));
+        chart.draw(data, options);
+}
+</script>

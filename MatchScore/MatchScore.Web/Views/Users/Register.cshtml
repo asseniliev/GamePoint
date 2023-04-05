@@ -1,0 +1,38 @@
+﻿@model UserRegisterVM;
+
+@{
+    this.ViewData["Title"] = "Register page";
+    this.ViewData["RegisterActive"] = "active";
+    this.ViewData["PageTitle"] = "Register";
+    this.ViewData["PageSubtitle"] = "Register to our site";
+}
+
+<div class="site-section">
+    <div class="container custom-container">
+        <form class="p-5 bg-dark custom-form" asp-controller="Users" asp-action="Register" method="post">
+            <div class="form-group input-icons">
+                <label><i class="fa-solid fa-user icon"></i>Username</label>
+                <input class="form-control input-field" asp-for="Username" type="text" placeholder="Enter username" />
+                <span class="red" type="hidden" asp-validation-for="Username"></span>
+            </div>
+            <div class="form-group input-icons">
+                <label><i class="fa-solid fa-lock icon"></i>Password</label>
+                <input class="form-control input-field" asp-for="Password" type="password" placeholder="Enter password" />
+                <span class="red" type="hidden" asp-validation-for="Password"></span>
+            </div>
+            <div class="form-group input-icons">
+                <label><i class="fa-solid fa-lock icon"></i>Confirm</label>
+                <input class="form-control input-field" asp-for="ConfirmPassword" type="password" placeholder="Confirm password" />
+                <span class="red" type="hidden" asp-validation-for="ConfirmPassword"></span>
+            </div>
+            <div class="form-group input-icons">
+                <label><i class="fa-solid fa-envelope icon"></i>Email</label>
+                <input class="form-control input-field" asp-for="Email" type="email" placeholder="Enter email" />
+                <span class="red" type="hidden" asp-validation-for="Email"></span>
+            </div>
+            <div class="form-group">
+                <input class="btn btn-primary py-3 px-4 text-white" type="submit" value="Register" />
+            </div>
+        </form>
+    </div>
+</div>

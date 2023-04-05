@@ -1,0 +1,91 @@
+﻿@model PlayerCreateVM
+@{
+    this.ViewData["Title"] = "Players Create";
+    this.ViewData["PlayersActive"] = "active";
+}
+
+<div class="site-section">
+    <div class="form-container">
+
+        @* Create player *@
+        <form class="p-5 bg-dark" asp-controller="Players" asp-action="Create" enctype="multipart/form-data" method="post">
+
+            <div class="col-6 title-section">
+                <h2 class="heading">Create Player</h2>
+            </div>
+
+            <div class="form-group mb-4 d-flex flex-column">
+                <label asp-for="Name"></label>
+                <input class="form-control" asp-for="Name" type="text" placeholder="Player Name" />
+                <span asp-validation-for="Name" class="form-error"></span>
+            </div>
+
+            <div class="form-group mb-2rem">
+                <label asp-for="Country"></label><br />
+                <select class="custom-select" asp-for="Country">
+                    <option value=" "></option>
+                    @foreach (var country in Enum.GetValues(typeof(Countries)))
+                    {
+                        <option value="@country">@(((Countries)country).AsString(EnumFormat.Description))</option>
+                    }
+                </select>
+                <br />
+                <span asp-validation-for="Country" class="form-error"></span>
+            </div>
+
+            <div class="form-group mb-2rem">
+                <label asp-for="SportsClubId">Club:</label><br />
+                <select class="custom-select" asp-for="SportsClubId">
+                    <option value=" "></option>
+                    @foreach (var club in this.Model.SportsClubs)
+                    {
+                        <option value="@club.SportsClubId">@club.Name</option>
+                    }
+                </select>
+                <br />
+                <span asp-validation-for="SportsClubId" class="form-error"></span>
+            </div>
+
+            <div class="form-group mb-2rem">
+                <label asp-for="IsTeam">Category</label><br />
+                <input asp-for="IsTeam" type="radio" value="true" />
+                <label>Team</label><br />
+                <input asp-for="IsTeam" type="radio" value="false" />
+                <label>Individual</label><br />
+            </div>
+
+
+            <div class="form-group mb-2rem">
+                <label asp-for="Photo"></label><br />
+                <input asp-for="Photo" type="file">
+                <br />
+            </div>
+
+            <div class="form-group mt-5">
+                <input class="btn btn-primary" type="submit" value="Create" />
+            </div>
+
+        </form>
+
+        @* Create Club *@
+
+    <form class="p-5 bg-dark" asp-controller="SportsClubs" asp-action="Create" method="post">
+        <div class="col-6 title-section">
+            <h2 class="heading">Create A Club</h2>
+        </div>
+
+        <input asp-for="View" type="hidden" value="create"/>
+
+        <div class="form-group d-flex flex-column">
+            <label asp-for="NewSportsClub">Name</label>
+            <input class="form-control" asp-for="NewSportsClub" type="text" placeholder="Club Name" /><br />
+        </div>
+
+        <div class="form-group">
+            <input class="btn btn-primary" type="submit" value="Create" />
+        </div>
+
+    </form>
+
+    </div>
+</div>

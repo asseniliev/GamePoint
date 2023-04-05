@@ -1,0 +1,376 @@
+﻿@model MatchScore.Web.ViewModels.EventViewModels.EventEditVM
+
+@{
+    var locationsSelection = new SelectList(this.Model.Locations, "LocationId", "City");
+    var playersSelection = new SelectList(Model.PlayersSelectionList, "PlayerId", "Name");
+    var playersNumberError = (string)this.ViewData["PlayersNumberError"];
+    @inject AutoMapper.IMapper mapper;
+
+    this.ViewData["Title"] = "Event edit";
+    this.ViewData["EditActive"] = "active";
+    this.ViewData["PageTitle"] = "Event edit";
+    this.ViewData["PageSubtitle"] = "Edit your event";
+}
+
+@* Event title and location *@
+<div class="site-section">
+    <div class="row align-items-center">
+        <div class="col-lg-5 ml-auto">
+            <h1 class="text-white">@Model.Title</h1>
+            <h3>Main location: @Model.City</h3>
+            <h5>Event type: @Model.EventType.ToString()</h5>
+        </div>
+    </div>
+
+    <div class="edit-container p-5 bg-dark border-radius">
+        @* Event start and end date *@
+        @if (this.Model.Matches.Count == 0)
+        {
+            <div class="container container-details mb-5">
+                <h3>Edit Event Info</h3>
+                <div class="row">
+                    <div class="col">
+                        <div>
+                            <form asp-controller="Events" asp-action="Edit" method="post">
+                                <input type="hidden" asp-for="EventId" value="@Model.EventId" />
+                                <div class="form-group">
+                                    <label class="label" asp-for="Title">Event title</label><br />
+                                    @if (this.Model.IsCompleted)
+                                    {
+                                        <input id="title" asp-for="Title" type="text" class="input-group form-control w-75" value="@Model.Title" disabled />
+                                    }
+                                    else
+                                    {
+                                        <input id="title" asp-for="Title" type="text" class="input-group form-control w-75" value="@Model.Title" />
+                                    }
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="StartDate"></label><br />
+                                    @if (this.Model.IsCompleted)
+                                    {
+                                        <input class="form-control" asp-for="StartDate" type="date" value="@Model.StartDate.ToString("yyyy-MM-dd")" disabled />
+                                    }
+                                    else
+                                    {
+                                        <input class="form-control" asp-for="StartDate" type="date" value="@Model.StartDate.ToString("yyyy-MM-dd")" />
+                                    }
+
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="EndDate"></label><br />
+                                    @if (this.Model.IsCompleted)
+                                    {
+                                        <input class="form-control" asp-for="EndDate" type="date" value="@Model.EndDate.ToString("yyyy-MM-dd")" disabled />
+                                    }
+                                    else
+                                    {
+                                        <input class="form-control" asp-for="EndDate" type="date" value="@Model.EndDate.ToString("yyyy-MM-dd")" />
+                                    }
+
+                                </div>
+                                @if (!this.Model.IsCompleted)
+                                {
+                                    <input class="btn btn-primary" type="submit" value="Update Event Info" />
+                                    <input type="button" value="Exit w/o Saving" class="btn btn-primary fa-lg gradient-custom-2 ml-4" onclick="location.href='@Url.Action("Index", "Events")'" />
+                                }
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @* Add & Remove Players *@
+        <div class="container container-details">
+            <div>
+                @if (Model.PlayersSelectionList.Count > 0 && this.Model.Matches.Count == 0 && !this.Model.IsCompleted)
+                {
+                    <h3>Add Players</h3>
+                    <form class="form-group" asp-controller="Events" asp-action="AddPlayer" method="post">
+                        <input type="hidden" asp-for="EventId" value="@Model.EventId" />
+                        <label asp-for="PlayerId">Players</label><br />
+                        <select class="event-select ml-0" style="height: 2.7rem; width: 204px; border-radius: 0.25rem;" asp-for="PlayerId" asp-items="@playersSelection"></select>
+                        <input class="btn btn-primary ml-3" type="submit" value="Add Player" />
+                        <br>
+                    </form>
+
+                    <form class="form-group d-flex flex-row" asp-controller="Players" asp-action="CreateFromEvent" method="post">
+                        <div>
+                            <input type="hidden" asp-for="EventId" value="@Model.EventId" />
+                            <input id="title" asp-for="NewPlayerName" type="text" class="input-group form-control" placeholder="Create Player" />
+                            <br />
+                            <span asp-validation-for="NewPlayerName" class="form-error"></span>
+                        </div>
+                        <div>
+                            <input class="btn btn-primary ml-3 mb-4" type="submit" value="Create Player" />
+                        </div>
+                        <br>
+                    </form>
+                }
+
+                @*Players List*@
+                <h3>Participants List</h3>
+                @if (this.Model.Matches.Count == 0)
+                {
+                    <h6>@Model.CorrectNumberOfPlayersInfo</h6>
+                }
+                <br />
+                @if (this.Model.Ranking.Count > 0)
+                {
+                    <table class="table custom-table table-dark mb-4">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col" class="text-white">Player</th>
+                                <th scope="col" class="text-white">Country</th>
+                                <th scope="col" class="text-white">Club</th>
+                                @if (User.Identity.IsAuthenticated && !User.Claims.FirstOrDefault(c => c.Type.Equals("Role")).Value.Equals("User") && this.Model.Matches.Count == 0)
+                                {
+                                    <th scope="col" class="text-white">Option</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ranking in this.Model.Ranking)
+                            {
+                                <tr>
+                                    @{
+                                        var row = this.Model.Ranking.IndexOf(ranking) + 1;
+                                    }
+                                    <td scope="row">@row</td>
+                                    <td>@ranking.Player.Name</td>
+                                    <td>@ranking.Player.Country</td>
+                                    @if (ranking.Player.SportsClub == null)
+                                    {
+                                        <td>None</td>
+                                    }
+                                    else
+                                    {
+                                        <td>@ranking.Player.SportsClub.Name</td>
+                                    }
+                                    @if (User.Identity.IsAuthenticated &&
+                                   !this.Model.IsCompleted &&
+                                   !User.Claims.FirstOrDefault(c => c.Type.Equals("Role")).Value.Equals("User") && this.Model.Matches.Count == 0)
+                                    {
+                                        <td>
+                                            <a asp-controller="Events" asp-action="RemovePlayer" asp-route-playerId="@ranking.PlayerId" asp-route-eventId="@Model.EventId" class="nav" method="post">Remove</a>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+
+                @*Generate/Delete Matches Scheme Button*@
+                @if (!this.Model.IsCompleted && this.Model.HasCorrectNumberOfPlayers)
+                {
+                    @if (this.Model.Matches.Count == 0)
+                    {
+                        <form asp-controller="Events" asp-action="GenerateMatches" method="post">
+                            <input type="hidden" asp-for="EventId" value="@Model.EventId" />
+                            <input class="btn btn-primary mb-5" type="submit" value="Generate Match Scheme" />
+                            @if (playersNumberError != null)
+                            {
+                                <span style="color: #dc3545; margin-top: 20px">@playersNumberError</span>
+                            }
+                        </form>
+                    }
+                    else
+                    {
+                        if (!this.Model.HasMatchesWithScores)
+                        {
+                            <form asp-controller="Events" asp-action="DeleteMatches" method="post">
+                                <input type="hidden" asp-for="EventId" value="@Model.EventId" />
+                                <input type="submit" class="btn btn-primary mb-5" value="Delete Matches Scheme" />
+                            </form>
+                        }
+                    }
+                }
+            </div>
+        </div>
+
+        @*Manage Awards*@
+        <div class="container container-details">
+            <div>
+                <h3>Awards Fund</h3> <br />
+                <form asp-controller="Awards" asp-action="Edit" method="post">
+                    <input type="hidden" asp-for="@Model.EventId" value="@Model.EventId" />
+                    <table class="table custom-table table-dark">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-white">Rank</th>
+                                <th scope="col" class="text-white">Amount</th>
+                                <th scope="col" class="text-white">Currency</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var award in this.Model.Awards)
+                            {
+                                var rank = this.Model.Awards.IndexOf(award) + 1;
+                                <tr>
+                                    <td scope="row">@rank</td>
+                                    <td>
+                                        <input type="hidden" asp-for="@Model.Awards[this.Model.Awards.IndexOf(award)].AwardId" />
+                                        <input type="hidden" asp-for="@Model.Awards[this.Model.Awards.IndexOf(award)].EventId" />
+                                        <input type="hidden" asp-for="@Model.Awards[this.Model.Awards.IndexOf(award)].Rank" />
+                                        @if (this.Model.IsCompleted)
+                                        {
+                                            <input type="text" asp-for="@Model.Awards[this.Model.Awards.IndexOf(award)].Prize" value="@string.Format("{0:N2}", @Model.Awards[this.Model.Awards.IndexOf(award)].Prize)" disabled />
+                                        }
+                                        else
+                                        {
+                                            <input type="text" asp-for="@Model.Awards[this.Model.Awards.IndexOf(award)].Prize" value="@string.Format("{0:N2}", @Model.Awards[this.Model.Awards.IndexOf(award)].Prize)" />
+                                        }
+
+                                    </td>
+                                    <td>&euro;</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    @if (!this.Model.IsCompleted)
+                    {
+                        <input class="btn btn-primary mt-3 mb-5" type="submit" value="Save Awards" />
+                    }
+                </form>
+            </div>
+        </div>
+
+        @*Matches List*@
+        @if (this.Model.Matches.Count != 0)
+        {
+            <div class="container container-details">
+                <div>
+                    <h3>Matches List</h3> <br />
+                    <table class="table custom-table table-dark">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col" class="text-white">City & Date</th>
+                                @*<th scope="col" class="text-white">Action</th>*@
+                                <th scope="col" class="text-white">Player 1</th>
+                                <th scope="col" class="text-white">Player 2</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var match in this.Model.Matches)
+                            {
+                                Model.Match = mapper.Map<MatchShortVM>(match);
+                                locationsSelection = new SelectList(this.Model.Locations, "LocationId", "City", "3");
+                                <tr>
+                                    @{
+                                        var row = this.Model.Matches.IndexOf(match) + 1;
+                                    }
+                                    <td scope="row">@row</td>
+                                    <td>
+                                        @if (this.Model.IsCompleted)
+                                        {
+                                            <select asp-for="@Model.Match.Location.LocationId" asp-items="@locationsSelection" value="@Model.Match.Location.LocationId." disabled></select>
+                                            <input type="Date" asp-for="@Model.Match.Date" value="@match.Date.ToString("yyyy-MM-dd")" disabled />
+                                        }
+                                        else
+                                        {
+                                            <form asp-controller="Matches" asp-action="Edit" method="post">
+                                                <input type="hidden" asp-for="@Model.EventId" value="@Model.EventId" />
+                                                <input type="hidden" asp-for="@Model.Match.MatchId" value="@match.MatchId" />
+                                                <select asp-for="@Model.Match.Location.LocationId" asp-items="@locationsSelection" value="@Model.Match.Location.LocationId"></select>
+                                                <input type="Date" asp-for="@Model.Match.Date" min="@Model.StartDate.ToString("yyyy-MM-dd")" max="@Model.EndDate.ToString("yyyy-MM-dd")" value="@match.Date.ToString("yyyy-MM-dd")" />
+                                                <input class="btn btn-primary ml-3" type="submit" value="Save Changes" />
+                                            </form>
+                                        }
+                                    </td>
+                                    @{
+                                        string player1 = "";
+                                        string player2 = "";
+                                        List<Score> scores = this.Model.Scores.Where(s => s.MatchId == match.MatchId).ToList();
+                                        if (scores != null && scores.Count > 0)
+                                        {
+                                            player1 = scores[0].Player.Name;
+                                            if (scores.Count > 1) player2 = scores[1].Player.Name;
+                                        }
+                                        else
+                                        {
+                                            player1 = player2 = "-";
+                                        }
+                                    }
+                                    <td>@player1</td>
+                                    <td>@player2</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <a asp-controller="Events" asp-action="Brackets" asp-route-eventId="@Model.EventId" class="nav mt-3 mb-3" method="get">Tournament Diagram</a>
+                </div>
+            </div>
+        }
+
+        @*Complete / Delete Event*@
+
+        <div class="container container-details">
+            <div>
+                @if (!this.Model.IsCompleted)
+                {
+                    <a asp-controller="Events" asp-action="ManageCompletion" asp-route-eventId="@Model.EventId" class="btn btn-warning btn-lg">Close Event</a>
+                    @if (!Model.HasMatchesWithScores)
+                    {
+                        <a asp-controller="Events" asp-action="Delete" asp-route-eventId="@Model.EventId" class="btn btn-primary btn-lg ml-5">Delete Event</a>
+                    }
+                }
+                else
+                {
+                    <a asp-controller="Events" asp-action="ManageCompletion" asp-route-eventId="@Model.EventId" class="btn btn-info btn-lg">Reopen Event</a>
+                }
+                <a asp-controller="Events" asp-action="Index" class="btn btn-info btn-lg ml-5">Back to Event Index</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@*<script src="~/Scripts/jquery-3.5.1.min.js"></script>
+    <script>
+        window.onbeforeunload = function () {
+            var scrollPos;
+            if (typeof window.pageYOffset != 'undefined') {
+                scrollPos = window.pageYOffset;
+            }
+            else if (typeof document.compatMode != 'undefined' && document.compatMode != 'BackCompat') {
+                scrollPos = document.documentElement.scrollTop;
+            }
+            else if (typeof document.body != 'undefined') {
+                scrollPos = document.body.scrollTop;
+            }
+            document.cookie = "scrollTop=" + scrollPos;
+        }
+        window.onload = function () {
+            if (document.cookie.match(/scrollTop=([^;]+)(;|$)/) != null) {
+                var arr = document.cookie.match(/scrollTop=([^;]+)(;|$)/);
+                document.documentElement.scrollTop = parseInt(arr[1]);
+                document.body.scrollTop = parseInt(arr[1]);
+            }
+        }
+    </script>*@
+<script>
+    //window.addEventListener("beforeunload", () => {
+    //    var scrollpos = localStorage.getItem("scrollpos");
+    //    if (scrollpos) window.scrollTo(0, scrollpos);
+    //});
+
+
+    document.addEventListener("DOMContentLoaded", function (event) {
+        var scrollpos = localStorage.getItem("scrollpos");
+        if (scrollpos) window.scrollTo(0, scrollpos);
+    });
+
+    window.onscroll = function (e) {
+        localStorage.setItem("scrollpos", window.scrollY);
+    };
+
+    window.addEventListener("beforeunload", () => {
+        localStorage.setItem("sidebar-scroll", sidebar.scrollTop);
+    });
+</script>
+
+
+

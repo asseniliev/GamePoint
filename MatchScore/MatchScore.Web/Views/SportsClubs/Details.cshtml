@@ -1,0 +1,81 @@
+﻿@model SportsClubDetailsVM
+
+@{
+    this.ViewData["Title"] = "Club Details";
+}
+
+@* Hero *@
+<div class="sm-hero">
+    <div class="hero overlay">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-5 ml-auto">
+                    <h1 class="text-white">@this.Model.Name</h1>
+                    <p>Get an inside look at your favorite Club.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@if (this.Model.Players.Count == 0)
+{
+    <div class="text-center m-5">
+        <h3>Currently there are no players in this club!</h3>
+    </div>
+}
+else
+{
+    <div class="grid-player club-grid">
+        @foreach (var player in this.Model.Players)
+        {
+            <div class="col" style="width:250px; height:300px;">
+                <div class="card h-100 flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            @if (player.Photo.Length < 1)
+                            {
+                                <img src="~/images/anonymous.jpg" alt="Avatar" class="card-img-top">
+                            }
+                            else
+                            {
+                                <img src="@String.Format(Messages.ImageSrc, Convert.ToBase64String(player.Photo))" alt="Avatar" class="card-img-top">
+                            }
+                            <p class="carousel-caption">@player.Name</p>
+                        </div>
+                        <div class="flip-card-back">
+                            <p class="card-text">
+                                <span>Country: </span>
+                                @if (player.Country == 0)
+                                {
+                                    <span>None</span>
+                                }
+                                else
+                                {
+                                    @(((Countries)player.Country).AsString(EnumFormat.Description))
+                                }
+                            </p>
+                            <p class="card-text">
+                                <span>Club: </span>
+                                @if (string.IsNullOrEmpty(player.SportsClubName))
+                                {
+                                    <span>None</span>
+                                }
+                                else
+                                {
+                                    <a asp-controller="SportsClubs" asp-action="Details" asp-route-id="@player.SportsClubId">@player.SportsClubName</a>
+                                }
+                            </p>
+                            <p class="card-text"><span>Status: </span>@{var status = player.IsInactive ? "Not Active" : "Active";}@status</p>
+                            <p class="card-text"><span>Matches Played: </span> @player.MatchesPlayed</p>
+                            <p class="card-text"><span>Matches Won: </span> @player.MatchesWon</p>
+                            <a asp-controller="Players" asp-action="Details" asp-route-id="@player.PlayerId" class="btn btn-primary">Profile</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

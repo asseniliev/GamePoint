@@ -1,0 +1,40 @@
+﻿@model MatchScore.Data.Models.Location;
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>loadmapwithoptionsHTML</title>
+    <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
+    <style type='text/css'>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI',Helvetica,Arial,Sans-Serif
+        }
+    </style>
+</head>
+<body>
+    <div id='printoutPanel'></div>
+
+    <div id='myMap' style='width: 500px; height: 500px;'></div>
+
+    <script type='text/javascript'>
+        function loadMapScenario() {
+            var map = new Microsoft.Maps.Map(document.getElementById('myMap'), {
+                mapTypeId: Microsoft.Maps.MapTypeId.road,
+                center: new Microsoft.Maps.Location(@Model.Latitude, @Model.Longitude),
+            zoom: 8
+        });
+        var pushpin = new Microsoft.Maps.Pushpin(map.getCenter(), {
+            icon: 'https://www.bingmapsportal.com/Content/images/poi_custom.png',
+            anchor: new Microsoft.Maps.Point(0, 50),
+
+        });
+        map.entities.push(pushpin);
+
+            }
+    </script>
+    <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?key=8BbtzJvAqA5bXCzcnTcd~yrMD5WUhGOr6IAqMsIRAEw~Agt1ygXkoxFeVN50i32C8FRDbd19RAng3vvcPi8Ti9u2vf_FSgjWPzl8QwzDxAqL&callback=loadMapScenario' async defer></script>
+</body>
+</html>

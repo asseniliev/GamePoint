@@ -1,0 +1,519 @@
+﻿@model EventDetailsVM
+
+@{
+    this.ViewData["Title"] = "Event Details";
+    PlayerShortVM player;
+    var ranklist = this.Model.Ranking.OrderBy(r => r.Rank).ToList();
+    bool noMatchesPlayed = false;
+    if (this.Model.Ranking.Count > 0)
+    {
+        noMatchesPlayed = this.Model.Ranking.Max(r => r.Rank) == 0;
+    } 
+    var prizes = this.Model.AwardsPrize.OrderByDescending(p => p).ToList();
+    var current = this.Model.Forecast.CurrentWeather;
+    var matches = this.Model.Matches.OrderBy(m => m.Round).ToList();
+}
+
+<link href="~/css/brackets.css" rel="stylesheet" />
+
+@* Hero *@
+<div class="sm-hero">
+    <div class="hero overlay">
+        <div class="container">
+            <div class="row align-items-center">
+                @* Champion *@
+                @if (this.Model.ChampionId != null)
+                {
+                    <div class="col-lg-5 ml-auto">
+                        <h1 class="text-white">Champion:</h1>
+                        <h2><a asp-controller="Players" asp-action="Details" asp-route-id="@this.Model.ChampionId">@this.Model.ChampionName</a></h2>
+                    </div>
+                }
+                <div class="col-lg-5 ml-auto">
+                    <h1 class="text-white">@this.Model.Title</h1>
+                    <p>Check out all the information related to this event, find out where, when and who.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@* Matches *@
+
+@if (this.Model.EventType == EventTypes.Knockout)
+{
+    <section class="knockout-details" id="bracket" style="background: linear-gradient(0deg, rgba(0,0,0,0.86) 18%, rgba(0,0,0,0) 100%);">
+        <div class="container">
+            <h1 class="text-center">Matches</h1>
+            @if (this.Model.Ranking.Count == 0)
+            {
+                <h2 class="text-center">No matches yet</h2>
+            }
+            else
+            {
+                <div class="split split-one">
+                    @for (int round = 0; round < this.Model.MultiRoundEvent.MatchScheme.Count; round++)
+                    {
+                        string roundClass = "";
+                        switch (round)
+                        {
+                            case (0):
+                                roundClass = "round-one";
+                                break;
+                            case (1):
+                                roundClass = "round-two";
+                                break;
+                            case (2):
+                                roundClass = "round-three";
+                                break;
+                            case (3):
+                                roundClass = "round-four";
+                                break;
+                            case (4):
+                                roundClass = "round-five";
+                                break;
+                        }
+                        roundClass = "round " + @roundClass + " current";
+                        <div class="@roundClass">
+                            <div class="round-details">
+                                @if (round == this.Model.MultiRoundEvent.MatchScheme.Count - 1)  //this is the case of the final match for the trophy
+                                {
+                                    <i class="fa fa-trophy"></i><br />
+                                    <span class="date">@this.Model.MultiRoundEvent.EventEndDate.ToString("dd.MM.yyyy")</span>
+                                }
+                                else
+                                {
+                                    string roundHeader = "Round " + (round + 1).ToString();
+                                    @roundHeader <br />
+                                }
+                            </div>
+                            @{
+                                foreach (var match in this.Model.MultiRoundEvent.MatchScheme[round])
+                                {
+                                    string player1 = "";
+                                    string player2 = "";
+                                    double? player1Score = null;
+                                    double? player2Score = null;
+                                    if (match.Players.Count > 0)
+                                    {
+                                        player1 = match.Players[0].Name;
+                                        if (match.Players.Count > 1)
+                                            player2 = match.Players[1].Name;
+                                    }
+                                    if (Model.MultiRoundEvent.MatchScores.ContainsKey(match.MatchId))
+                                    {
+                                        player1Score = @Model.MultiRoundEvent.MatchScores[match.MatchId][0];
+                                        if (@Model.MultiRoundEvent.MatchScores[match.MatchId].Count > 1)
+                                            player2Score = @Model.MultiRoundEvent.MatchScores[match.MatchId][1];
+
+                                    }
+                                    <ul class="matchup">
+                                        <li class="team team-top">
+                                            @player1
+                                            <span class="scoreinput score">@player1Score</span>
+                                        </li>
+                                        <li class="team team-bottom">
+                                            @player2
+                                            <span class="scoreinput score">@player2Score</span>
+                                        </li>
+                                        <li style="background: none">
+                                            <a  class="btn btn-primary mt-2" asp-controller="Matches" asp-action="Details" asp-route-id="@match.MatchId">Match Details</a>
+                                        </li>
+                                    </ul>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+             }
+        </div>
+    </section>
+}
+else if (this.Model.EventType == EventTypes.League)
+{
+    <div class="league-matches">
+        <h2 class="text-center">Matches</h2>
+        <table class="table custom-table table-dark table-striped">
+            <thead>
+                <tr>
+                    <th>Round</th>
+                    <th>Date</th>
+                    <th>Location</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (this.Model.Matches.Count == 0)
+                {
+                    <tr><td colspan="5" align="center">No matches yet</td></tr>
+                }
+                else
+                {
+                    @foreach (var match in matches)
+                    {
+                        <tr>
+                            <td>@match.Round</td>
+                            <td>@match.Date.ToString(Messages.ShortDateDisplay)</td>
+                            @if (string.IsNullOrEmpty(match.LocationCity))
+                            {
+                                <td>Undetermined</td>
+                            }
+                            else
+                            {
+                                <td>@match.LocationCity, @(((Countries)match.LocationCountry).AsString(EnumFormat.Description))</td>
+                            }
+                            <td><a class="btn btn-warning btn-sm" asp-controller="Matches" asp-action="Details" asp-route-id="@match.MatchId">Details</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@* Players *@
+@if (this.Model.EventType == EventTypes.SingleMatch)
+{
+    <div class="player-section bg-dark-transparent">
+        <div class="container container-details ">
+            <div class="row">
+
+                @* Player 1 *@
+                <div class="col text-center p-0">
+                    <center>
+                        <div class="col" style="width:250px; height:300px;">
+                            <div class="card h-100 flip-card">
+                                @if (this.Model.Ranking.Count < 1)
+                                {
+                                    <p class="opponent-card">Player not assigned yet!</p>
+                                }
+                                else
+                                {
+                                    player = this.Model.Ranking[0].Player;
+                                    <div class="flip-card-inner">
+                                        <div class="flip-card-front">
+                                            @if (player.Photo.Length < 1)
+                                            {
+                                                <img src="~/images/anonymous.jpg" alt="Avatar" class="card-img-top">
+                                            }
+                                            else
+                                            {
+                                                <img src="@String.Format(Messages.ImageSrc, Convert.ToBase64String(player.Photo))" alt="Avatar" class="card-img-top">
+                                            }
+                                            <p class="carousel-caption">@player.Name</p>
+                                        </div>
+                                        <div class="flip-card-back">
+                                            <p class="card-text">
+                                                <span>Country: </span>
+                                                @if (player.Country == 0)
+                                                {
+                                                    <span>None</span>
+                                                }
+                                                else
+                                                {
+                                                    @(((Countries)player.Country).AsString(EnumFormat.Description))
+                                                }
+                                            </p>
+                                            <p class="card-text">
+                                                <span>Sports Club: </span>
+                                                @if (string.IsNullOrEmpty(player.SportsClubName))
+                                                {
+                                                    <span>None</span>
+                                                }
+                                                else
+                                                {
+                                                    <a asp-controller="SportsClubs" asp-action="Details" asp-route-id="@player.SportsClubId">@player.SportsClubName</a>
+                                                }
+                                            </p>
+                                            <p class="card-text"><span>Status: </span>@{var statusB = player.IsInactive ? "Not Active" : "Active";}@statusB</p>
+                                            <a asp-controller="Players" asp-action="Details" asp-route-id="@player.PlayerId" class="btn btn-primary">Profile</a>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </center>
+
+                </div>
+
+                @*VS*@
+                <div class="col text-center p-0" style="width:150px; height:300px;">
+                    <center>
+                        <div class="col" style="width:150px; height:300px;">
+                            <div class="card h-100 flip-card">
+                                <p class="opponent-card vs">VS</p>
+                            </div>
+                        </div>
+                    </center>
+
+                </div>
+
+                @* Player 2 *@
+                <div class="col text-center p-0">
+                    <center>
+                        <div class="col" style="width:250px; height:300px;">
+                            <div class="card h-100 flip-card">
+                                @if (this.Model.Ranking.Count < 2)
+                                {
+                                    <p class="opponent-card">Player not assigned yet!</p>
+                                }
+                                else
+                                {
+                                    player = this.Model.Ranking[1].Player;
+                                    <div class="flip-card-inner">
+                                        <div class="flip-card-front">
+                                            @if (player.Photo.Length < 1)
+                                            {
+                                                <img src="~/images/anonymous.jpg" alt="Avatar" class="card-img-top">
+                                            }
+                                            else
+                                            {
+                                                <img src="@String.Format(Messages.ImageSrc, Convert.ToBase64String(player.Photo))" alt="Avatar" class="card-img-top">
+                                            }
+                                            <p class="carousel-caption">@player.Name</p>
+                                        </div>
+                                        <div class="flip-card-back">
+                                            <p class="card-text">
+                                                <span>Country: </span>
+                                                @if (player.Country == 0)
+                                                {
+                                                    <span>None</span>
+                                                }
+                                                else
+                                                {
+                                                    @(((Countries)player.Country).AsString(EnumFormat.Description))
+                                                }
+                                            </p>
+                                            <p class="card-text">
+                                                <span>Sports Club: </span>
+                                                @if (string.IsNullOrEmpty(player.SportsClubName))
+                                                {
+                                                    <span>None</span>
+                                                }
+                                                else
+                                                {
+                                                    <a asp-controller="SportsClubs" asp-action="Details" asp-route-id="@player.SportsClubId">@player.SportsClubName</a>
+                                                }
+                                            </p>
+                                            <p class="card-text"><span>Status: </span>@{var statusB = player.IsInactive ? "Not Active" : "Active";}@statusB</p>
+                                            <a asp-controller="Players" asp-action="Details" asp-route-id="@player.PlayerId" class="btn btn-primary">Profile</a>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </center>
+                </div>
+
+            </div>
+            @if (matches.Count > 0)
+            {
+                <div class="d-flex align-items-end">
+                    <a class="btn btn-primary mt-5 mr-5" style="font-size: 1rem" asp-controller="Matches" asp-action="Details" asp-route-id="@matches.FirstOrDefault().MatchId">Match Details</a>
+                </div>
+
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="ranklist ranklist-event">
+        <div class="d-flex flex-column align-items-end title-ranklist">
+            @if (noMatchesPlayed || this.Model.EventType == EventTypes.Knockout)
+            {
+                <h1 class="text-white float-right">Players</h1>
+            }
+            else
+            {
+                <h1 class="text-white float-right">Ranklist</h1>
+            }
+        </div>
+
+        <div class="scrolling-wrapper">
+            @if (ranklist.Count == 0)
+            {
+                <h2 style=" margin-left: auto; margin-right: auto;">No matches yet</h2>
+            }
+            else
+            {
+                @foreach (var rank in ranklist)
+                {
+                    var pl = rank.Player;
+                    <div>
+                        <div class="card-ranklist mb-5" style="width:220px; height:300px;">
+                            <div class="card h-100 flip-card">
+                                <div class="flip-card-inner">
+                                    <div class="flip-card-front">
+                                        @if (pl.Photo.Length < 1)
+                                        {
+                                            <img src="~/images/anonymous.jpg" alt="Avatar" class="card-img-top">
+                                        }
+                                        else
+                                        {
+                                            <img src="@String.Format(Messages.ImageSrc, Convert.ToBase64String(pl.Photo))" alt="Avatar" class="card-img-top">
+                                        }
+                                        <p class="carousel-caption">@pl.Name</p>
+                                    </div>
+                                    <div class="flip-card-back">
+                                        <p class="card-text">
+                                            <span>Country: </span>
+                                            @if (pl.Country == 0)
+                                            {
+                                                <span>None</span>
+                                            }
+                                            else
+                                            {
+                                                @(((Countries)pl.Country).AsString(EnumFormat.Description))
+                                            }
+                                        </p>
+                                        <p class="card-text">
+                                            <span>Club: </span>
+                                            @if (string.IsNullOrEmpty(pl.SportsClubName))
+                                            {
+                                                <span>None</span>
+                                            }
+                                            else
+                                            {
+                                                <a asp-controller="SportsClubs" asp-action="Details" asp-route-id="@pl.SportsClubId">@pl.SportsClubName</a>
+                                            }
+                                        </p>
+                                        <p class="card-text"><span>Status: </span>@{var status = pl.IsInactive ? "Not Active" : "Active";}@status</p>
+                                        <a asp-controller="Players" asp-action="Details" asp-route-id="@pl.PlayerId" class="btn btn-primary">Profile</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @if (!noMatchesPlayed && this.Model.EventType != EventTypes.Knockout)
+                        {
+                            <h2 class="text-center">@rank.Rank</h2>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    </div>
+}
+
+<div class="bgr-black">
+    <div class="details-and-apis bgr-event">
+
+        @* Details *@
+        <div class="container">
+            <div>
+
+                <h1 class="text-white">Details</h1>
+                <p>The when and the where!</p>
+
+                <div class="row">
+
+                    <div class="col match-details">
+                        <h1>Start Date: </h1><span>@this.Model.StartDate.ToString(Messages.DateDisplay)</span>
+                    </div>
+
+                    <div class="col match-details">
+                        <h1>Director: </h1><span><a asp-controller="Users" asp-action="Details" asp-route-userId="@this.Model.DirectorUserId">@this.Model.DirectorUsername</a></span>
+                    </div>
+
+                    <div class="col match-details">
+                        <h1>Awards: </h1>
+                        @foreach (var award in prizes)
+                        {
+                            <span>@(prizes.IndexOf(award) + 1): @award</span><br />
+                        }
+                    </div>
+                </div>
+
+                <div class="row">
+
+                    <div class="col match-details">
+                        <h1>End Date: </h1><span>@this.Model.EndDate.ToString(Messages.DateDisplay)</span>
+                    </div>
+
+                    <div class="col match-details">
+                        <h1>Location: </h1><span>@this.Model.LocationCity, @(((Countries)this.Model.LocationCountry).AsString(EnumFormat.Description))</span>
+                    </div>
+
+                    <div class="col match-details">
+                        @if (this.Model.EventType == EventTypes.SingleMatch)
+                        {
+                            <h1>Type: </h1><span>Single Match</span>
+                        }
+                        else
+                        {
+                            <h1>Type: </h1><span>@this.Model.EventType</span>
+                        }
+                        <br />
+                        @if (this.Model.IsTeamEvent)
+                        {
+                            <span>Team Event</span>
+                        }
+                        else
+                        {
+                            <span>Single Player Event</span>
+                        }
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        @* Weather and Map *@
+
+        <div class="player-section">
+            <div class="d-flex align-items-end">
+                <h1 class="text-white float-right">Local Info</h1>
+                <p class="float-right">Weather and map, just in case you need them.</p>
+            </div>
+
+            <div class="container">
+                <div class="row">
+
+                    <div class="col">
+                        <div class="panel">
+                            <h2 class="city text-center">@this.Model.LocationCity</h2>
+                            <div class="weather">
+                                <h2 class="temp">@current.Temp<span>C°</span></h2>
+                                <img src="@(string.Format(APIKeys.CurrentWeatherIconURL, current.Icon))" />
+                                <div class="secondary">
+                                    <h6>@DateTime.Now.DayOfWeek</h6>
+                                    <h6>@current.Weather</h6>
+                                </div>
+                                <div class="group secondary">
+                                    <h6>Wind @current.Wind m/s</h6>
+                                    <h6>Humidity @(current.Humidity)%</h6>
+                                </div>
+                            </div>
+                            <hr />
+                            <div class="forecast">
+                                @foreach (var day in this.Model.Forecast.Weather)
+                                {
+                                    <div>
+                                        <p class="weekday">@day.Time.ToString("ddd")</p>
+                                        <div style="width:50px; height:50px;">
+                                            <img src="@(string.Format(APIKeys.WeatherIconURL, day.Icon))" />
+                                        </div>
+                                        <p>@day.Weather</p>
+                                        <p class="max-temp" style="color:white">@day.MaxTemp</p>
+                                        <p class="min-temp">@day.MinTemp</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col">
+                        <div class="map">
+                            <iframe width="400" height="300" frameborder="0" src="https://www.bing.com/maps/embed?h=300&w=400&cp=@(this.Model.LocationLatitude)~@(this.Model.LocationLongitude)&lvl=12&typ=d&sty=r&src=SHELL&FORM=MBEDV8" scrolling="no">
+                            </iframe>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

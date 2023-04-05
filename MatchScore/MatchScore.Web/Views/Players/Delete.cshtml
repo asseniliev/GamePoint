@@ -1,0 +1,28 @@
+﻿@model PlayerDeleteVM
+
+
+@{
+    this.ViewData["Title"] = "Player Delete";
+    this.ViewData["PlayersActive"] = "active";
+}
+
+<div class="site-section">
+    <div class="container">
+        <div class="text-center bg-dark p-5 rounded-custom">
+            @if (Model.Deleted)
+            {
+                <h1>Player deleted!</h1>
+            }
+            else
+            {
+                <h1>Are you sure you want to delete player <br />@Model.Name?</h1>
+                <div class="d-flex btn-delete">
+                    <a class="btn btn-outline-light" asp-controller="Players" asp-action="Details" asp-route-id="@Model.PlayerId">Go Back</a>
+                    <form asp-controller="Player" asp-action="Delete" method="post">
+                        <input class="btn btn-primary" type="submit" value="Delete" asp-route-id="@Model.PlayerId">
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+</div>
